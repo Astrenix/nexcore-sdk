@@ -1,0 +1,32 @@
+{
+  "name": "@nexcore/sdk",
+  "version": "3.0.0",
+  "description": "NexCore official Node.js SDK — all-in-one client covering Payment / Energy / SMTP / AI APIs",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "echo \"no tests yet\" && exit 0"
+  },
+  "keywords": [
+    "nexcore",
+    "payment",
+    "crypto",
+    "tron",
+    "usdt",
+    "smtp",
+    "openai",
+    "claude",
+    "sdk"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {},
+  "license": "MIT",
+  "homepage": "https://nexcores.net"
+}

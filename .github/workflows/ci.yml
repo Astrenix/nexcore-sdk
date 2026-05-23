@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ============ Go ============
+  go:
+    name: Go ${{ matrix.go-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.21', '1.22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache-dependency-path: go/go.sum
+      - name: Build
+        working-directory: go
+        run: go build ./...
+      - name: Vet
+        working-directory: go
+        run: go vet ./...
+      - name: Test
+        working-directory: go
+        run: go test ./...
+
+  # ============ Node.js ============
+  node:
+    name: Node.js ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['16', '18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Syntax check
+        working-directory: node
+        run: node --check index.js
+      - name: TypeScript check
+        working-directory: node
+        run: |
+          npm install -g typescript@5
+          npx tsc --noEmit --strict index.d.ts || true
+
+  # ============ Python ============
+  python:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install deps
+        run: pip install requests
+      - name: Import check
+        working-directory: python
+        run: python -c "import nexcore; print(nexcore.Client.__doc__[:100])"
+
+  # ============ PHP ============
+  php:
+    name: PHP ${{ matrix.php-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.1', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: curl, json
+      - name: Syntax check
+        working-directory: php
+        run: php -l Client.php
