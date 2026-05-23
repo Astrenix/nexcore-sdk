@@ -37,7 +37,7 @@ try {
     echo "  过期时间:  {$order['expires_at']}\n";
 
 } catch (NexCoreError $e) {
-    echo "❌ Error #{$e->code}: {$e->getMessage()}\n";
+    echo "❌ Error #{$e->getCode()}: {$e->getMessage()}\n";
     if ($e->requestId)  echo "  Trace ID: {$e->requestId}\n";
     if ($e->httpStatus) echo "  HTTP: {$e->httpStatus}\n";
     exit(1);

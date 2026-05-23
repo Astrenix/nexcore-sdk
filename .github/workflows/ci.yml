@@ -6,13 +6,13 @@ on:
   pull_request:
     branches: [main]
 
-# SDK 是供开发者嵌入的库代码,不打包成二进制 / 不部署。
-# CI 只做轻量的语法 / 类型 / 静态检查,确保代码能被开发者正常 import 与调用。
+# SDK 是供开发者嵌入的库代码,不打包成二进制 / 不部署.
+# CI 只做轻量的语法 / 类型 / 静态检查 + 单元测试(跨语言 fixture 一致性验证).
 
 jobs:
-  # ============ Go — vet 静态检查 ============
+  # ============ Go — vet + test ============
   go:
-    name: Go ${{ matrix.go-version }} · vet
+    name: Go ${{ matrix.go-version }} · vet + test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,17 +22,20 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-      - name: go vet (SDK package only)
+      - name: go vet
         working-directory: go
         run: go vet ./
+      - name: go test (signature parity)
+        working-directory: go
+        run: go test -v ./...
 
-  # ============ Node.js — 语法 + 类型 ============
+  # ============ Node.js — syntax + node:test ============
   node:
-    name: Node.js ${{ matrix.node-version }} · syntax
+    name: Node.js ${{ matrix.node-version }} · syntax + test
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['16', '18', '20', '22']
+        node-version: ['18', '20', '22']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -42,16 +45,21 @@ jobs:
         working-directory: node
         run: |
           node --check index.js
-          for f in examples/*.js; do node --check "$f"; done
+          for f in src/*.js src/namespaces/*.js examples/*.js test/*.js; do
+            node --check "$f"
+          done
       - name: TypeScript .d.ts type check
         working-directory: node
         run: |
           npm install --no-save --silent typescript@5
           npx tsc --noEmit --strict index.d.ts
+      - name: node --test (signature parity)
+        working-directory: node
+        run: node --test test/*.test.js
 
-  # ============ Python — import + py_compile ============
+  # ============ Python — import + unittest ============
   python:
-    name: Python ${{ matrix.python-version }} · import
+    name: Python ${{ matrix.python-version }} · import + test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -72,10 +80,13 @@ jobs:
           for f in examples/*.py; do
             python -m py_compile "$f"
           done
+      - name: unittest (signature parity)
+        working-directory: python
+        run: python -m unittest discover tests -v
 
-  # ============ PHP — php -l 语法检查 ============
+  # ============ PHP — php -l + signature parity test ============
   php:
-    name: PHP ${{ matrix.php-version }} · lint
+    name: PHP ${{ matrix.php-version }} · lint + test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -86,10 +97,11 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: curl, json
-      - name: php -l Client.php
-        working-directory: php
-        run: php -l Client.php
-      - name: php -l examples/*.php
+      - name: php -l (src + examples + tests)
         working-directory: php
         run: |
-          for f in examples/*.php; do php -l "$f"; done
+          find src -name '*.php' -exec php -l {} \;
+          for f in examples/*.php tests/*.php; do php -l "$f"; done
+      - name: php run signature parity test
+        working-directory: php
+        run: php tests/PaymentSignTest.php
