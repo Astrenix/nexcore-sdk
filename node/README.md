@@ -1,6 +1,8 @@
 # NexCore Node.js SDK
 
-全能 Node.js 客户端,覆盖 Payment / Energy / SMTP / AI 全部 NexCore 业务。**零运行时依赖**(仅 Node.js 标准库)。
+全能 Node.js 客户端,覆盖 Payment / Exchange / Energy / SMTP **全部 25 个 v1 公开 endpoint**.
+
+**零运行时依赖**(仅 Node.js 标准库 `http`/`https`/`crypto`).
 
 ## 环境
 
@@ -9,15 +11,44 @@
 
 ## 安装
 
-```bash
-# 从 npm 安装(SDK 发布到 npm 后)
-npm install @nexcore/sdk
+### 方式一:npm(推荐)
 
-# 或直接复制
-cp sdk/node/index.js sdk/node/index.d.ts sdk/node/package.json your-project/lib/nexcore/
+```bash
+npm install @nexcore/sdk
+# or
+pnpm add @nexcore/sdk
+# or
+yarn add @nexcore/sdk
+```
+
+(SDK 包发布到 npm 后)
+
+### 方式二:直接复制
+
+```bash
+cp -r sdk/node/{index.js,index.d.ts,package.json,src} your-project/lib/nexcore/
+```
+
+## 文件结构
+
+```
+index.js                公开入口(re-export Client + NexCoreError)
+index.d.ts              TypeScript 类型定义
+package.json
+src/
+├── client.js           主客户端
+├── http.js             底层 HTTP 传输
+├── errors.js           统一异常 NexCoreError
+└── namespaces/
+    ├── payment.js      多链收款(7 endpoints)
+    ├── exchange.js     汇率(5 endpoints)
+    ├── energy.js       TRON 能量租赁(8 endpoints)
+    └── smtp.js         SMTP 聚合 API(5 endpoints)
 ```
 
 ## 用法
+
+### CommonJS
 
 ```javascript
 const { Client, NexCoreError } = require('@nexcore/sdk');
@@ -28,44 +59,43 @@ const client = new Client({
   paymentAppKey: 'your_app_key_here',
   energyApiKey: 'energy_api_key_here',
   energySecretKey: 'energy_secret_key_here',
-  aiApiKey: 'sk-nc-xxx',
+  smtpApiKey: 'smk_xxx',
   timeout: 30000,
 });
 
 (async () => {
   try {
-    // 创建支付订单
     const order = await client.payment.createOrder({
       out_order_id: `ORDER_${Date.now()}`,
       amount: '100.00',
       currency: 'CNY',
       trade_type: 'usdt.trc20',
       call_type: 'rotation',
-      timeout: 1800,
     });
     console.log('支付地址:', order.pay_address);
 
-    // 估算能量
+    const rate = await client.exchange.getRate('USDT', 'CNY');
+    console.log('USDT/CNY:', rate.rate);
+
     const est = await client.energy.estimateEnergy('TXxxxxxxxxxxxxxxxxxxxxx');
     console.log('需要能量:', est.estimated_energy);
 
-    // AI 对话
-    const reply = await client.ai.chat(
-      [{ role: 'user', content: '你好' }],
-      'claude-opus-4-7'
-    );
-    console.log(reply.choices[0].message.content);
+    const mail = await client.smtp.send({
+      to: 'user@example.com',
+      subject: '验证码',
+      body: '<h1>123456</h1>',
+      is_html: true,
+    });
+    console.log('消息 ID:', mail.message_id);
   } catch (e) {
     if (e instanceof NexCoreError) {
       console.error(`Error #${e.code}: ${e.message} (trace: ${e.requestId})`);
-    } else {
-      throw e;
     }
   }
 })();
 ```
 
-## TypeScript / ESM
+### TypeScript / ESM
 
 ```typescript
 import { Client, NexCoreError } from '@nexcore/sdk';
@@ -74,14 +104,56 @@ const client = new Client({ baseUrl: 'https://your-domain.com', /* ... */ });
 const order = await client.payment.createOrder({ /* ... */ });
 ```
 
-## 异常
+完整类型定义在 [`index.d.ts`](./index.d.ts).
 
-所有错误统一抛 `NexCoreError`,字段:
+## API 列表
 
-- `code` — 平台错误码(0 = 成功)
-- `message` — 错误描述
-- `requestId` — 服务端日志追踪 ID(响应头 `X-Trace-Id`)
-- `httpStatus` — HTTP 状态码
+### `client.payment` — 多链收款(7 endpoint)
+
+| 方法 | HTTP | endpoint |
+|---|---|---|
+| `createOrder(params)` | POST | `/api/v1/pay/create` |
+| `queryOrder(outOrderId)` | GET | `/api/v1/pay/query` |
+| `closeOrder(outOrderId)` | POST | `/api/v1/pay/close` |
+| `getAppConfig()` | GET | `/api/v1/pay/app-config` |
+| `bindAddress(userId, tradeType)` | POST | `/api/v1/pay/bind-address` |
+| `getUserAddress(userId, tradeType)` | POST | `/api/v1/pay/get-address` |
+| `unbindAddress(userId)` | POST | `/api/v1/pay/unbind-address` |
+| `sign(params)` | (工具) | HMAC-SHA256 签名 |
+| `verifyNotifySign(payload)` | (工具) | webhook 校验(常量时间) |
+
+### `client.exchange` — 汇率(5 endpoint)
+
+| 方法 | HTTP | endpoint |
+|---|---|---|
+| `getRate(from, to)` | GET | `/api/v1/rate` |
+| `convert(from, to, amount)` | POST | `/api/v1/convert` |
+| `getRates(symbols, base)` | GET | `/api/v1/rates` |
+| `getFiatRates(base)` | GET | `/api/v1/rates/fiat` |
+| `getAllRates(base)` | GET | `/api/v1/rates/all` |
+
+### `client.energy` — TRON 能量租赁(8 endpoint)
+
+| 方法 | HTTP | endpoint |
+|---|---|---|
+| `getInfo()` | GET | `/api/v1/energy/info` |
+| `getPrice(energy, period)` | GET | `/api/v1/energy/price` |
+| `estimateEnergy(receiveAddr)` | GET | `/api/v1/energy/estimate-energy` |
+| `createOrder(params)` | POST | `/api/v1/energy/order` |
+| `createOnetimeOrder(params)` | POST | `/api/v1/energy/order/onetime` |
+| `queryOrder(serial)` | GET | `/api/v1/energy/order/:serial` |
+| `listOrders(filter)` | GET | `/api/v1/energy/orders` |
+| `reclaimOrder(serial)` | POST | `/api/v1/energy/order/reclaim` |
+
+### `client.smtp` — SMTP 聚合(5 endpoint)
+
+| 方法 | HTTP | endpoint |
+|---|---|---|
+| `send(params)` | POST | `/api/v1/smtp/send` |
+| `sendBatch(params)` | POST | `/api/v1/smtp/send/batch` |
+| `sendTemplate(params)` | POST | `/api/v1/smtp/send/template` |
+| `getQuota()` | GET | `/api/v1/smtp/quota` |
+| `getStatus(messageId)` | GET | `/api/v1/smtp/status/:message_id` |
 
 ## Webhook 签名校验
 
@@ -94,13 +166,24 @@ app.post('/payment/notify', (req, res) => {
   if (!client.payment.verifyNotifySign(req.body)) {
     return res.status(400).send('invalid sign');
   }
-  // 处理回调...
+  // 处理回调... 务必幂等
   res.send('OK');
 });
 ```
 
-签名校验用 `crypto.timingSafeEqual`,常量时间比较,防时序攻击。
+`verifyNotifySign` 内部用 `crypto.timingSafeEqual`,常量时间比较防时序攻击.
+
+## 异常
+
+`NexCoreError`:
+
+- `code` — 平台错误码(0=成功)
+- `message` — 错误描述
+- `requestId` — 服务端追踪 ID(响应头 `X-Trace-Id`)
+- `httpStatus` — HTTP 状态码
 
 ## 示例
 
-更多示例见 [`examples/`](./examples/) 目录。
+见 [`examples/`](./examples/):
+- `create_order.js` — 完整下单
+- `webhook_express.js` — Express 接收回调
