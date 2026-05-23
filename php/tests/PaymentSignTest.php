@@ -21,6 +21,7 @@ require_once __DIR__ . '/../src/Namespaces/Payment.php';
 require_once __DIR__ . '/../src/Namespaces/Exchange.php';
 require_once __DIR__ . '/../src/Namespaces/Energy.php';
 require_once __DIR__ . '/../src/Namespaces/Smtp.php';
+require_once __DIR__ . '/../src/Namespaces/Withdraw.php';
 require_once __DIR__ . '/../src/Client.php';
 
 use NexCore\Client;
