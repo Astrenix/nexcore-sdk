@@ -1,17 +1,17 @@
 <?php
 /**
- * NexCore PHP SDK — Webhook 回调签名校验
+ * NexCore PHP SDK — Webhook 回调签名校验.
  *
  * 部署:把本文件放到可公开访问的 URL(如 https://your-domain.com/payment/notify),
- *      然后在用户后台「应用配置」的 notify_url 填这个 URL。
+ *      然后在用户后台 "应用配置" 的 notify_url 填这个 URL.
  *
  * NexCore 支付成功后会 POST 一个 JSON 到这里,你必须:
  *   1. 校验签名(SDK 提供 verifyNotifySign 一行搞定)
- *   2. 处理订单状态(发货 / 更新 DB)
+ *   2. 处理订单状态(发货 / 更新 DB),务必幂等
  *   3. 返回 200 OK(否则平台会重试)
  */
 
-require_once __DIR__ . '/../Client.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use NexCore\Client;
 
@@ -22,8 +22,9 @@ $client = new Client([
 ]);
 
 // 1. 读 raw body
-$raw = file_get_contents('php://input');
+$raw     = file_get_contents('php://input');
 $payload = json_decode($raw, true);
+
 if (!is_array($payload)) {
     http_response_code(400);
     echo 'invalid payload';
@@ -39,17 +40,16 @@ if (!$client->payment->verifyNotifySign($payload)) {
 }
 
 // 3. 业务处理(示例)
-// 注意:同一个订单可能因网络重试收到多次回调,做幂等!
-$orderId   = $payload['order_id']     ?? '';
-$outOrder  = $payload['out_order_id'] ?? '';
-$status    = (int)($payload['status'] ?? 0);
-$amount    = $payload['amount']       ?? '';
-$txHash    = $payload['tx_hash']      ?? '';
+// 同一订单可能因网络重试收到多次回调,务必做幂等(DB 唯一索引 out_order_id 等)
+$outOrder = $payload['out_order_id'] ?? '';
+$status   = (int) ($payload['status'] ?? 0);
+$amount   = $payload['amount']        ?? '';
+$txHash   = $payload['tx_hash']       ?? '';
 
-// 状态:1=已支付  2=待支付  3=已关闭  4=已退款
+// 状态枚举:1=已支付  2=待支付  3=已关闭  4=已退款
 if ($status === 1) {
-    // 真实业务里这里应该:DB 查 out_order_id,判断是否已发货,未发货才发货
     error_log("[nexcore] 订单已支付: {$outOrder} = {$amount} (tx: {$txHash})");
+    // TODO: DB 查 out_order_id,判断是否已发货,未发货才发货
 }
 
 // 4. 必须返回 200

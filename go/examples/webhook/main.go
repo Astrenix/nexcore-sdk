@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"os"
 
-	nexcore "github.com/nexcore-platform/nexcore-sdk-go"
+	nexcore "github.com/DoBestone/nexcore-sdk/go"
 )
 
 func envOr(k, def string) string {

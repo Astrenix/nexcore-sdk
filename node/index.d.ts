@@ -9,8 +9,8 @@ export interface ClientConfig {
   energyApiKey?: string;
   energySecretKey?: string;
   smtpApiKey?: string;
-  aiApiKey?: string;
   timeout?: number;
+  userAgent?: string;
 }
 
 export class NexCoreError extends Error {
@@ -22,12 +22,14 @@ export class NexCoreError extends Error {
 
 export class Client {
   constructor(config: ClientConfig);
-  baseUrl: string;
+  static readonly VERSION: string;
   payment: PaymentNamespace;
+  exchange: ExchangeNamespace;
   energy: EnergyNamespace;
   smtp: SmtpNamespace;
-  ai: AiNamespace;
 }
+
+// ============ Payment ============
 
 export interface PaymentCreateOrderParams {
   out_order_id: string;
@@ -37,43 +39,85 @@ export interface PaymentCreateOrderParams {
   call_type?: 'rotation' | 'one_to_one';
   user_id?: string;
   timeout?: number;
+  subject?: string;
   notify_url?: string;
   return_url?: string;
-  subject?: string;
-  [k: string]: any;
+  [k: string]: unknown;
 }
 
 export interface PaymentNamespace {
-  createOrder(params: PaymentCreateOrderParams): Promise<any>;
-  queryOrder(outOrderId: string): Promise<any>;
-  closeOrder(outOrderId: string): Promise<any>;
-  bindAddress(userId: string, tradeType: string): Promise<any>;
-  getAddress(userId: string, tradeType: string): Promise<any>;
-  unbindAddress(userId: string): Promise<any>;
-  appConfig(): Promise<any>;
-  verifyNotifySign(payload: Record<string, any>): boolean;
+  sign(params: Record<string, unknown>): string;
+  createOrder(params: PaymentCreateOrderParams): Promise<Record<string, unknown>>;
+  queryOrder(outOrderId: string): Promise<Record<string, unknown>>;
+  closeOrder(outOrderId: string): Promise<Record<string, unknown>>;
+  getAppConfig(): Promise<Record<string, unknown>>;
+  bindAddress(userId: string, tradeType: string): Promise<Record<string, unknown>>;
+  getUserAddress(userId: string, tradeType: string): Promise<Record<string, unknown>>;
+  unbindAddress(userId: string): Promise<Record<string, unknown>>;
+  verifyNotifySign(payload: Record<string, unknown>): boolean;
+}
+
+// ============ Exchange ============
+
+export interface ExchangeNamespace {
+  getRate(from: string, to: string): Promise<Record<string, unknown>>;
+  convert(from: string, to: string, amount: string | number): Promise<Record<string, unknown>>;
+  getRates(symbols: string[], base?: string): Promise<Record<string, unknown>>;
+  getFiatRates(base?: string): Promise<Record<string, unknown>>;
+  getAllRates(base?: string): Promise<Record<string, unknown>>;
+}
+
+// ============ Energy ============
+
+export interface EnergyCreateOrderParams {
+  receive_addr: string;
+  energy: number;
+  period: '1H' | '6H' | '1D' | '3D' | '1W';
+  out_serial?: string;
+  [k: string]: unknown;
 }
 
 export interface EnergyNamespace {
-  info(): Promise<any>;
-  price(energy: number, period?: string): Promise<any>;
-  estimateEnergy(receiveAddr: string): Promise<any>;
-  createOrder(params: Record<string, any>): Promise<any>;
-  queryOrder(orderId: number | string): Promise<any>;
-  listOrders(filter?: Record<string, any>): Promise<any>;
+  getInfo(): Promise<Record<string, unknown>>;
+  getPrice(energy: number, period?: string): Promise<Record<string, unknown>>;
+  estimateEnergy(receiveAddr: string): Promise<Record<string, unknown>>;
+  createOrder(params: EnergyCreateOrderParams): Promise<Record<string, unknown>>;
+  createOnetimeOrder(params: EnergyCreateOrderParams): Promise<Record<string, unknown>>;
+  queryOrder(serial: string): Promise<Record<string, unknown>>;
+  listOrders(filter?: Record<string, unknown>): Promise<Record<string, unknown>>;
+  reclaimOrder(serial: string): Promise<Record<string, unknown>>;
+}
+
+// ============ SMTP ============
+
+export interface SmtpSendParams {
+  to: string;
+  subject: string;
+  body: string;
+  is_html?: boolean;
+  account_id?: number;
+  reply_to?: string;
+}
+
+export interface SmtpSendBatchParams {
+  to: string[];
+  subject: string;
+  body: string;
+  is_html?: boolean;
+  account_id?: number;
+}
+
+export interface SmtpSendTemplateParams {
+  to: string;
+  template_id: number;
+  variables: Record<string, unknown>;
+  account_id?: number;
 }
 
 export interface SmtpNamespace {
-  sendMail(params: Record<string, any>): Promise<any>;
-  listAccounts(): Promise<any>;
-  listTemplates(): Promise<any>;
-}
-
-export interface AiNamespace {
-  chat(
-    messages: Array<{ role: string; content: string }>,
-    model: string,
-    extra?: Record<string, any>,
-  ): Promise<any>;
-  models(): Promise<any>;
+  send(params: SmtpSendParams): Promise<Record<string, unknown>>;
+  sendBatch(params: SmtpSendBatchParams): Promise<Record<string, unknown>>;
+  sendTemplate(params: SmtpSendTemplateParams): Promise<Record<string, unknown>>;
+  getQuota(): Promise<Record<string, unknown>>;
+  getStatus(messageId: string): Promise<Record<string, unknown>>;
 }

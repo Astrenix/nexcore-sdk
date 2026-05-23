@@ -1,12 +1,11 @@
 <?php
 /**
- * NexCore PHP SDK — 创建支付订单(轮播模式)
+ * NexCore PHP SDK — 创建支付订单(轮播模式).
  *
- * 执行:
- *   php examples/create_order.php
+ * 执行:composer install,然后 php examples/create_order.php
  */
 
-require_once __DIR__ . '/../Client.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use NexCore\Client;
 use NexCore\NexCoreError;
@@ -21,11 +20,11 @@ $client = new Client([
 try {
     $order = $client->payment->createOrder([
         'out_order_id' => 'ORDER_' . time(),
-        'amount'       => '100.00',           // 必填:法币金额(两位小数 string,避免浮点精度)
-        'currency'     => 'CNY',              // 法币:CNY / USD / EUR / JPY / KRW / HKD
+        'amount'       => '100.00',           // 必填:法币金额(两位小数 string,避免浮点)
+        'currency'     => 'CNY',              // 法币:CNY/USD/EUR/JPY/KRW/HKD
         'trade_type'   => 'usdt.trc20',       // 加密币种.链
-        'call_type'    => 'rotation',         // rotation=轮播 / 一对一=one_to_one
-        'timeout'      => 1800,               // 订单 30 分钟过期
+        'call_type'    => 'rotation',         // rotation=轮播 / one_to_one=一对一
+        'timeout'      => 1800,
         'subject'      => '会员充值',
         'notify_url'   => 'https://your-domain.com/payment/notify',
         'return_url'   => 'https://your-domain.com/payment/success',
@@ -39,7 +38,7 @@ try {
 
 } catch (NexCoreError $e) {
     echo "❌ Error #{$e->code}: {$e->getMessage()}\n";
-    if ($e->requestId) echo "  Trace ID: {$e->requestId}\n";
+    if ($e->requestId)  echo "  Trace ID: {$e->requestId}\n";
     if ($e->httpStatus) echo "  HTTP: {$e->httpStatus}\n";
     exit(1);
 }

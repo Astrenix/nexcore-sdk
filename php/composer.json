@@ -1,0 +1,28 @@
+{
+  "name": "nexcore/sdk",
+  "description": "Official NexCore PHP SDK — Payment / Exchange / Energy / SMTP. Covers all v1 public API endpoints.",
+  "type": "library",
+  "license": "MIT",
+  "version": "3.0.0",
+  "keywords": ["nexcore", "payment", "crypto", "tron", "usdt", "smtp", "sdk", "trc20"],
+  "require": {
+    "php": ">=7.4",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "NexCore\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "NexCore\\Examples\\": "examples/"
+    }
+  },
+  "support": {
+    "issues": "https://github.com/DoBestone/nexcore-sdk/issues",
+    "source": "https://github.com/DoBestone/nexcore-sdk",
+    "docs": "https://github.com/DoBestone/nexcore-sdk/tree/main/php"
+  }
+}

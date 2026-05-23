@@ -1,3 +1,3 @@
-module github.com/nexcore-platform/nexcore-sdk-go
+module github.com/DoBestone/nexcore-sdk/go
 
 go 1.21

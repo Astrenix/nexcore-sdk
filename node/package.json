@@ -1,15 +1,17 @@
 {
   "name": "@nexcore/sdk",
   "version": "3.0.0",
-  "description": "NexCore official Node.js SDK — all-in-one client covering Payment / Energy / SMTP / AI APIs",
+  "description": "Official NexCore Node.js SDK — Payment / Exchange / Energy / SMTP. Covers all v1 public API endpoints.",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
     "index.js",
     "index.d.ts",
+    "src/",
     "README.md"
   ],
   "scripts": {
+    "syntax": "node --check index.js && find src -name '*.js' -exec node --check {} \\;",
     "test": "echo \"no tests yet\" && exit 0"
   },
   "keywords": [
@@ -18,9 +20,9 @@
     "crypto",
     "tron",
     "usdt",
+    "trc20",
     "smtp",
-    "openai",
-    "claude",
+    "exchange",
     "sdk"
   ],
   "engines": {
@@ -28,5 +30,14 @@
   },
   "dependencies": {},
   "license": "MIT",
-  "homepage": "https://nexcores.net"
+  "author": "NexCore Team",
+  "homepage": "https://github.com/DoBestone/nexcore-sdk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DoBestone/nexcore-sdk.git",
+    "directory": "node"
+  },
+  "bugs": {
+    "url": "https://github.com/DoBestone/nexcore-sdk/issues"
+  }
 }
