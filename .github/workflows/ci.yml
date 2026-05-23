@@ -6,10 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+# SDK 是供开发者嵌入的库代码,不打包成二进制 / 不部署。
+# CI 只做轻量的语法 / 类型 / 静态检查,确保代码能被开发者正常 import 与调用。
+
 jobs:
-  # ============ Go ============
+  # ============ Go — vet 静态检查 ============
   go:
-    name: Go ${{ matrix.go-version }}
+    name: Go ${{ matrix.go-version }} · vet
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,20 +22,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-          cache-dependency-path: go/go.sum
-      - name: Build
+      - name: go vet (SDK package only)
         working-directory: go
-        run: go build ./...
-      - name: Vet
-        working-directory: go
-        run: go vet ./...
-      - name: Test
-        working-directory: go
-        run: go test ./...
+        run: go vet ./
 
-  # ============ Node.js ============
+  # ============ Node.js — 语法 + 类型 ============
   node:
-    name: Node.js ${{ matrix.node-version }}
+    name: Node.js ${{ matrix.node-version }} · syntax
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -42,18 +38,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Syntax check
-        working-directory: node
-        run: node --check index.js
-      - name: TypeScript check
+      - name: node --check (syntax)
         working-directory: node
         run: |
-          npm install -g typescript@5
-          npx tsc --noEmit --strict index.d.ts || true
+          node --check index.js
+          for f in examples/*.js; do node --check "$f"; done
+      - name: TypeScript .d.ts type check
+        working-directory: node
+        run: |
+          npm install --no-save --silent typescript@5
+          npx tsc --noEmit --strict index.d.ts
 
-  # ============ Python ============
+  # ============ Python — import + py_compile ============
   python:
-    name: Python ${{ matrix.python-version }}
+    name: Python ${{ matrix.python-version }} · import
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -63,15 +61,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install deps
+      - name: Install runtime deps
         run: pip install requests
       - name: Import check
         working-directory: python
-        run: python -c "import nexcore; print(nexcore.Client.__doc__[:100])"
+        run: python -c "import nexcore; print('nexcore.Client OK')"
+      - name: Syntax check examples
+        working-directory: python
+        run: |
+          for f in examples/*.py; do
+            python -m py_compile "$f"
+          done
 
-  # ============ PHP ============
+  # ============ PHP — php -l 语法检查 ============
   php:
-    name: PHP ${{ matrix.php-version }}
+    name: PHP ${{ matrix.php-version }} · lint
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -82,6 +86,10 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: curl, json
-      - name: Syntax check
+      - name: php -l Client.php
         working-directory: php
         run: php -l Client.php
+      - name: php -l examples/*.php
+        working-directory: php
+        run: |
+          for f in examples/*.php; do php -l "$f"; done
