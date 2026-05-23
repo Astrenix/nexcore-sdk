@@ -1,8 +1,94 @@
+<div align="center">
+
 # NexCore Official SDKs
 
-NexCore 综合数字基础服务平台官方 SDK 集合 — **一个客户端覆盖全部业务模块**.
+**面向开发者的综合数字基础服务平台 · 官方多语言 SDK**
 
-🌐 **公开仓库:** https://github.com/DoBestone/nexcore-sdk
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![v3.0.0](https://img.shields.io/badge/version-3.0.0-blue.svg)](./CHANGELOG.md)
+[![Website](https://img.shields.io/badge/website-nexcores.net-2563eb.svg)](https://nexcores.net)
+[![Docs](https://img.shields.io/badge/docs-online-22c55e.svg)](https://nexcores.net/docs)
+
+**官方网站** · [nexcores.net](https://nexcores.net) &nbsp;|&nbsp;
+**API 文档** · [/docs](https://nexcores.net/docs) &nbsp;|&nbsp;
+**易记** · [9188.PRO](https://9188.pro)
+
+</div>
+
+---
+
+## 关于 NexCore
+
+**NexCore** 是面向开发者与中小团队的**综合数字基础服务平台**,把"加密支付、跨链兑换、TRON 能量、虚拟卡、云服务、海外通讯、AI 网关"等高频但难自研的能力统一封装为 API,让一个开发者也能跑完跨境业务全链路.
+
+> 自 **2021 年 7 月** 启动以来,服务范围已经从最初的多链收款扩展到 **9 大业务模块**,目前是国内少数同时提供加密金融、海外通讯、AI 接入完整工具栈的开发者平台之一.
+
+**设计哲学**
+
+- 🔌 **一次接入,全栈可用** — 一个 SDK 实例覆盖所有业务,共享 baseUrl + 凭据池
+- 🛡️ **自托管友好** — Webhook HMAC 签名 + 常量时间校验,合规可审计
+- 🌍 **多语言对等** — PHP / Python / Node.js / Go 行为完全一致,迁移零成本
+- 📜 **永远跟文档对齐** — SDK 字段命名与 [`/docs`](https://nexcores.net/docs) 100% 一致,不需要"翻译表"
+- 🪶 **零或最少依赖** — Go / Node 零运行时依赖,Python 仅 `requests`,PHP 仅 `ext-curl`
+
+## 平台业务一览
+
+NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖**核心 4 个**(其余 5 个见线上文档说明):
+
+<table>
+<tr>
+<th width="33%">业务</th>
+<th width="20%">SDK 覆盖</th>
+<th>定位</th>
+</tr>
+<tr>
+<td>🪙 <b>多链收款 / Payment</b></td>
+<td>✅ <code>client.payment</code></td>
+<td>USDT/USDC/TRX/BTC/ETH 等 6 主链加密货币收款,秒级确认,商户自托管</td>
+</tr>
+<tr>
+<td>💱 <b>汇率 / Exchange</b></td>
+<td>✅ <code>client.exchange</code></td>
+<td>实时加密 ↔ 法币 / 法币 ↔ 法币 汇率服务,Payment 配套</td>
+</tr>
+<tr>
+<td>⚡ <b>TRON 能量租赁 / Energy</b></td>
+<td>✅ <code>client.energy</code></td>
+<td>TRC20 转账省 60% gas,即租即用,30 秒到账</td>
+</tr>
+<tr>
+<td>📧 <b>SMTP 聚合 API / Smtp</b></td>
+<td>✅ <code>client.smtp</code></td>
+<td>模板邮件 + 多账号智能轮发 + 打开/点击全跟踪</td>
+</tr>
+<tr>
+<td>🔄 多链闪兑 / Swap</td>
+<td>—</td>
+<td>任意币 ↔ 任意币,链上充提,30 分钟自动到账</td>
+</tr>
+<tr>
+<td>💳 虚拟信用卡 / Vcard</td>
+<td>—</td>
+<td>USDT 充值开卡,海外广告 / AI 订阅秒结算,Visa / Mastercard 全球</td>
+</tr>
+<tr>
+<td>☁️ 云服务 / Cloud</td>
+<td>—</td>
+<td>域名 / 服务器 / DNS / SSL 一站式</td>
+</tr>
+<tr>
+<td>📱 SMS 接码 + 专用邮箱 / SMS</td>
+<td>—</td>
+<td>海外平台注册首选,60+ 国家真实运营商号源</td>
+</tr>
+<tr>
+<td>🤖 Astrenix AI / AiApi</td>
+<td>—</td>
+<td>Claude / OpenAI / Gemini 全代理,兼容官方 SDK(直接用 <code>openai</code> SDK 改 base_url)</td>
+</tr>
+</table>
+
+> ⚠️ Swap / Vcard / Cloud / SMS / Astrenix AI 当前通过线上文档 + Web 控制台调用.SDK 后续按需求扩展.
 
 ## 业务覆盖(25 个 v1 公开 endpoint)
 
@@ -19,10 +105,10 @@ NexCore 综合数字基础服务平台官方 SDK 集合 — **一个客户端覆
 
 | 语言 | 目录 | 包管理 | 安装 |
 |---|---|---|---|
-| PHP 7.4+ | [`php/`](./php/) | Composer | `composer require nexcore/sdk` |
-| Python 3.8+ | [`python/`](./python/) | pip | `pip install nexcore-sdk` |
-| Node.js 16+ | [`node/`](./node/) | npm | `npm install @nexcore/sdk` |
-| Go 1.21+ | [`go/`](./go/) | go modules | `go get github.com/DoBestone/nexcore-sdk/go` |
+| 🐘 PHP 7.4+ | [`php/`](./php/) | Composer | `composer require nexcore/sdk` |
+| 🐍 Python 3.8+ | [`python/`](./python/) | pip | `pip install nexcore-sdk` |
+| 🟢 Node.js 16+ | [`node/`](./node/) | npm | `npm install @nexcore/sdk` |
+| 🐹 Go 1.21+ | [`go/`](./go/) | go modules | `go get github.com/DoBestone/nexcore-sdk/go` |
 
 (npm/PyPI/Packagist 发布详见 [`PUBLISH.md`](./PUBLISH.md))
 
@@ -203,16 +289,34 @@ raw, err := c.Payment.CreateOrder(map[string]any{
 
 每个语言的 `client.payment.verifyNotifySign(payload)` 一行调用即完成校验.
 
+## 适用场景
+
+- **跨境电商 / 数字商品** — 多链收款 + 法币汇率 + 自动归集
+- **海外广告投流团队** — 虚拟卡批量开卡 / USDT 自动充值
+- **AI 应用开发者** — 通过 Astrenix AI 网关同时接 Claude/GPT/Gemini,统一计费
+- **海外平台运营** — SMS 接码 + 专用邮箱 + SMTP 聚合发送,完整通讯栈
+- **DApp / Web3 应用** — TRON 能量租赁 + 多链收款,链上业务标配
+
 ## 版本
 
 当前 SDK 版本:**v3.0.0**(跟主仓库 v3.x 主线一致)
 
 ## 反馈
 
-[GitHub Issues](https://github.com/DoBestone/nexcore-sdk/issues) 或 NexCore 用户后台 「工单」.
-
-安全漏洞请发送到 `security@nexcores.net`(详见 [`SECURITY.md`](.github/SECURITY.md)).
+- [GitHub Issues](https://github.com/DoBestone/nexcore-sdk/issues) — 公开提问 / Bug 反馈
+- NexCore 用户后台「工单」 — 私下技术支持 / 账号问题
+- `security@nexcores.net` — 安全漏洞(详见 [`SECURITY.md`](.github/SECURITY.md))
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE) © 2026 NexCore
+
+---
+
+<div align="center">
+
+**🚀 立即开始**
+
+[官方网站](https://nexcores.net) · [完整 API 文档](https://nexcores.net/docs) · [注册账号](https://nexcores.net/register) · [GitHub Issues](https://github.com/DoBestone/nexcore-sdk/issues)
+
+</div>
