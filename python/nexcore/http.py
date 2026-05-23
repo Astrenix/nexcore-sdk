@@ -40,6 +40,7 @@ class Http:
         body: Optional[Dict[str, Any]] = None,
         query: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
+        body_raw: Optional[bytes] = None,
     ) -> Dict[str, Any]:
         """发送 HTTP 请求.
 
@@ -47,6 +48,8 @@ class Http:
             method: HTTP 方法 GET / POST / PUT / DELETE.
             path: 以 / 开头的路径,如 ``/api/v1/pay/create``.
             body: JSON 请求体(自动序列化).
+            body_raw: 已序列化好的 body bytes(优先于 body,RSA 签名场景必须用,
+                确保签名串和实际发出的 body 字节完全一致).
             query: query 参数.
             headers: 额外 header.
 
@@ -61,7 +64,7 @@ class Http:
             "Accept": "application/json",
             "User-Agent": self.user_agent,
         }
-        if body is not None:
+        if body is not None or body_raw is not None:
             h["Content-Type"] = "application/json"
         if headers:
             h.update(headers)
@@ -74,7 +77,9 @@ class Http:
         if query:
             # 过滤空值
             kwargs["params"] = {k: v for k, v in query.items() if v not in (None, "")}
-        if body is not None:
+        if body_raw is not None:
+            kwargs["data"] = body_raw
+        elif body is not None:
             kwargs["data"] = json.dumps(body, ensure_ascii=False).encode("utf-8")
 
         try:

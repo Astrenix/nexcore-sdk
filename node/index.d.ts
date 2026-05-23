@@ -9,6 +9,9 @@ export interface ClientConfig {
   energyApiKey?: string;
   energySecretKey?: string;
   smtpApiKey?: string;
+  withdrawApiKey?: string;
+  withdrawPrivateKeyPem?: string;
+  withdrawPlatformPublicKeyPem?: string;
   timeout?: number;
   userAgent?: string;
 }
@@ -27,6 +30,7 @@ export class Client {
   exchange: ExchangeNamespace;
   energy: EnergyNamespace;
   smtp: SmtpNamespace;
+  withdraw: WithdrawNamespace;
 }
 
 // ============ Payment ============
@@ -120,4 +124,33 @@ export interface SmtpNamespace {
   sendTemplate(params: SmtpSendTemplateParams): Promise<Record<string, unknown>>;
   getQuota(): Promise<Record<string, unknown>>;
   getStatus(messageId: string): Promise<Record<string, unknown>>;
+}
+
+// ============ Withdraw (多链收款 · 提币端,RSA-2048) ============
+
+export interface WithdrawCreateParams {
+  chain: 'tron' | 'eth' | 'bsc' | 'polygon' | 'arbitrum' | 'btc' | string;
+  symbol: string;
+  amount: string;
+  to_address: string;
+  memo?: string;
+  callback_url?: string;
+  request_id?: string;
+  [k: string]: unknown;
+}
+
+export interface WithdrawNamespace {
+  sign(method: string, path: string, timestamp: string, nonce: string, body: string): string;
+  createWithdraw(params: WithdrawCreateParams): Promise<Record<string, unknown>>;
+  getWithdraw(orderId: string): Promise<Record<string, unknown>>;
+  getWithdrawableBalance(): Promise<Record<string, unknown>>;
+  quoteFee(chain: string, symbol: string, amount?: string): Promise<Record<string, unknown>>;
+  verifyCallback(
+    method: string,
+    path: string,
+    timestamp: string,
+    nonce: string,
+    body: string,
+    base64Signature: string
+  ): void;
 }

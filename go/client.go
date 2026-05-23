@@ -24,6 +24,14 @@ type Config struct {
 	// SMTPAPIKey SMTP 聚合 API 的 smk_ 前缀 Token.
 	SMTPAPIKey string
 
+	// WithdrawAPIKey 提币 API 的 X-API-Key(账户级 API Key).
+	WithdrawAPIKey string
+	// WithdrawPrivateKeyPEM 对接方 RSA 私钥 PEM 字符串(用于请求签名).
+	// 推荐运行时从环境变量或密钥管理服务读出,不要硬编码.
+	WithdrawPrivateKeyPEM string
+	// WithdrawPlatformPublicKeyPEM 平台 RSA 公钥 PEM(用于回调验签,可选).
+	WithdrawPlatformPublicKeyPEM string
+
 	// Timeout HTTP 超时,默认 30s.
 	Timeout time.Duration
 
@@ -53,6 +61,8 @@ type Client struct {
 	Energy *EnergyNamespace
 	// SMTP SMTP 聚合命名空间
 	SMTP *SMTPNamespace
+	// Withdraw 提币命名空间(多链收款业务的资金出库端,RSA-2048 签名)
+	Withdraw *WithdrawNamespace
 }
 
 // NewClient creates a new NexCore client.
@@ -83,5 +93,6 @@ func NewClient(cfg Config) *Client {
 	c.Exchange = &ExchangeNamespace{c: c}
 	c.Energy = &EnergyNamespace{c: c}
 	c.SMTP = &SMTPNamespace{c: c}
+	c.Withdraw = &WithdrawNamespace{c: c}
 	return c
 }

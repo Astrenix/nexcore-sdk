@@ -37,6 +37,7 @@ const { Payment } = require('./namespaces/payment');
 const { Exchange } = require('./namespaces/exchange');
 const { Energy } = require('./namespaces/energy');
 const { Smtp } = require('./namespaces/smtp');
+const { Withdraw } = require('./namespaces/withdraw');
 
 class Client {
   /**
@@ -47,6 +48,9 @@ class Client {
    * @param {string} [config.energyApiKey] - 能量租赁 X-API-Key
    * @param {string} [config.energySecretKey] - 能量租赁 X-Secret-Key
    * @param {string} [config.smtpApiKey] - SMTP smk_ 前缀 Token
+   * @param {string} [config.withdrawApiKey] - 提币 X-API-Key(账户级)
+   * @param {string} [config.withdrawPrivateKeyPem] - 对接方 RSA 私钥 PEM(提币请求签名)
+   * @param {string} [config.withdrawPlatformPublicKeyPem] - 平台 RSA 公钥 PEM(可选,回调验签用)
    * @param {number} [config.timeout=30000] - HTTP 超时毫秒
    * @param {string} [config.userAgent] - 自定义 User-Agent
    */
@@ -66,6 +70,7 @@ class Client {
     this.exchange = new Exchange(this);
     this.energy = new Energy(this);
     this.smtp = new Smtp(this);
+    this.withdraw = new Withdraw(this);
   }
 
   /**
@@ -78,6 +83,6 @@ class Client {
   }
 }
 
-Client.VERSION = '3.0.0';
+Client.VERSION = '3.1.0';
 
 module.exports = { Client };

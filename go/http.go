@@ -21,6 +21,7 @@ type httpTransport struct {
 // requestOpts 是 do() 的可选参数.
 type requestOpts struct {
 	Body    any                    // 自动 JSON 序列化为 body
+	BodyRaw []byte                 // 已 marshal 好的原始 body(优先于 Body,RSA 签名场景必须用这个保证字节一致)
 	Query   map[string]any         // query 参数(自动 url-encode + 过滤空值)
 	Headers map[string]string      // 额外 header
 }
@@ -61,9 +62,11 @@ func (t *httpTransport) do(method, path string, opts *requestOpts) (json.RawMess
 		}
 	}
 
-	// body 编码
+	// body 编码:BodyRaw 优先(RSA 签名场景必须用,否则签名串和实际 body 不一致)
 	var body io.Reader
-	if opts.Body != nil {
+	if opts.BodyRaw != nil {
+		body = bytes.NewReader(opts.BodyRaw)
+	} else if opts.Body != nil {
 		b, err := json.Marshal(opts.Body)
 		if err != nil {
 			return nil, &Error{Message: "marshal body: " + err.Error(), Code: -1}

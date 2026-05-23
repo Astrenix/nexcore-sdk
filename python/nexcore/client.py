@@ -9,6 +9,7 @@ from .namespaces.payment import Payment
 from .namespaces.exchange import Exchange
 from .namespaces.energy import Energy
 from .namespaces.smtp import Smtp
+from .namespaces.withdraw import Withdraw
 
 
 class Client:
@@ -45,7 +46,7 @@ class Client:
     所有错误统一抛 :class:`NexCoreError`(含 ``code`` / ``request_id`` / ``http_status``).
     """
 
-    VERSION = "3.0.0"
+    VERSION = "3.1.0"
 
     def __init__(
         self,
@@ -56,6 +57,9 @@ class Client:
         energy_api_key: Optional[str] = None,
         energy_secret_key: Optional[str] = None,
         smtp_api_key: Optional[str] = None,
+        withdraw_api_key: Optional[str] = None,
+        withdraw_private_key_pem: Optional[str] = None,
+        withdraw_platform_public_key_pem: Optional[str] = None,
         timeout: int = 30,
         verify_ssl: bool = True,
         user_agent: Optional[str] = None,
@@ -83,6 +87,9 @@ class Client:
             "energy_api_key": energy_api_key,
             "energy_secret_key": energy_secret_key,
             "smtp_api_key": smtp_api_key,
+            "withdraw_api_key": withdraw_api_key,
+            "withdraw_private_key_pem": withdraw_private_key_pem,
+            "withdraw_platform_public_key_pem": withdraw_platform_public_key_pem,
         }
 
         self.http = Http(
@@ -96,6 +103,7 @@ class Client:
         self.exchange = Exchange(self)
         self.energy = Energy(self)
         self.smtp = Smtp(self)
+        self.withdraw = Withdraw(self)
 
     def get(self, key: str) -> Optional[Any]:
         """取配置字段(各 namespace 内部使用).

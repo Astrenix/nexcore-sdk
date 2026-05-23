@@ -2,6 +2,36 @@
 
 本仓库遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 和 [Semantic Versioning](https://semver.org/lang/zh-CN/).
 
+## [3.1.0] - 2026-05-23
+
+### 新增
+
+- 4 个语言 SDK 全部新增 **`.withdraw` namespace** — 多链收款业务的资金出库端,共 4 个 endpoint:
+  - `POST /api/v1/withdraw` 发起提币(`createWithdraw` / `create_withdraw`)
+  - `GET  /api/v1/withdraw/:id` 查询单笔(`getWithdraw` / `get_withdraw`)
+  - `GET  /api/v1/balance/withdrawable` 查询可提余额(`getWithdrawableBalance` / `get_withdrawable_balance`)
+  - `GET  /api/v1/fee/quote` 费用预估(`quoteFee` / `quote_fee`)
+- 提币 API 使用 **RSA-PKCS1v15-SHA256** 签名(非对称),与收款 API 的 HMAC-SHA256(对称)并存
+- 各 SDK 配置项新增 `withdraw_api_key` / `withdraw_private_key_pem` / `withdraw_platform_public_key_pem`
+- 新增 `Withdraw.sign()` 公开方法(便于 curl 调试场景手算签名)
+- 新增 `Withdraw.verifyCallback()` 公开方法(对接方收到平台回调时校验签名)
+
+### 变更
+
+- 各 SDK 覆盖 endpoint 数从 25 增至 **29**(4 个新增提币 endpoint)
+- `Http.request` 在 4 个语言中统一支持 raw body bytes/string 传入(RSA 签名场景必须用,保证签名串与实际 body 字节一致)
+
+### 依赖
+
+- Python SDK `pyproject.toml` 新增 `cryptography>=3.4.0`(运行时 lazy import,不用提币功能不会强制装)
+- PHP SDK `composer.json` 新增 `ext-openssl: *`
+- Go / Node 用各自语言标准库内置 crypto,无新增第三方依赖
+
+### 文档
+
+- 各 SDK `doc.go` / `__init__.py` / `client.js` / `Client.php` 顶部注释同步更新 namespace 列表
+- `index.d.ts`(Node)新增 `WithdrawNamespace` / `WithdrawCreateParams` 类型
+
 ## [3.0.0] - 2026-05-23
 
 ### 新增

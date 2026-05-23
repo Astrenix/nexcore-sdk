@@ -1,14 +1,15 @@
 {
   "name": "nexcore/sdk",
-  "description": "Official NexCore PHP SDK — Payment / Exchange / Energy / SMTP. Covers all v1 public API endpoints.",
+  "description": "Official NexCore PHP SDK — Payment / Withdraw / Exchange / Energy / SMTP. Covers all v1 public API endpoints.",
   "type": "library",
   "license": "MIT",
-  "version": "3.0.0",
-  "keywords": ["nexcore", "payment", "crypto", "tron", "usdt", "smtp", "sdk", "trc20"],
+  "version": "3.1.0",
+  "keywords": ["nexcore", "payment", "crypto", "tron", "usdt", "smtp", "sdk", "trc20", "withdraw"],
   "require": {
     "php": ">=7.4",
     "ext-curl": "*",
-    "ext-json": "*"
+    "ext-json": "*",
+    "ext-openssl": "*"
   },
   "autoload": {
     "psr-4": {

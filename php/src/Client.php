@@ -37,6 +37,7 @@ use NexCore\Namespaces\Payment;
 use NexCore\Namespaces\Exchange;
 use NexCore\Namespaces\Energy;
 use NexCore\Namespaces\Smtp;
+use NexCore\Namespaces\Withdraw;
 
 /**
  * Client 是 NexCore SDK 的入口.
@@ -47,7 +48,7 @@ use NexCore\Namespaces\Smtp;
 class Client
 {
     /** SDK 版本号(跟主仓库 v3.x.x 同步) */
-    public const VERSION = '3.0.0';
+    public const VERSION = '3.1.0';
 
     /** @var array<string, mixed> 完整配置 */
     private array $config;
@@ -67,6 +68,9 @@ class Client
     /** @var Smtp SMTP 聚合命名空间 */
     public Smtp $smtp;
 
+    /** @var Withdraw 多链收款 · 提币端命名空间(RSA-2048 签名) */
+    public Withdraw $withdraw;
+
     /**
      * @param array{
      *     base_url: string,
@@ -75,6 +79,9 @@ class Client
      *     energy_api_key?: string,
      *     energy_secret_key?: string,
      *     smtp_api_key?: string,
+     *     withdraw_api_key?: string,
+     *     withdraw_private_key_pem?: string,
+     *     withdraw_platform_public_key_pem?: string,
      *     timeout?: int,
      *     verify_ssl?: bool,
      *     user_agent?: string,
@@ -102,6 +109,7 @@ class Client
         $this->exchange = new Exchange($this);
         $this->energy   = new Energy($this);
         $this->smtp     = new Smtp($this);
+        $this->withdraw = new Withdraw($this);
     }
 
     /**
