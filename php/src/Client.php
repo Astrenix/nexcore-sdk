@@ -8,6 +8,8 @@
  *   $client->exchange  — 汇率(X-App-Key + X-App-Secret header)
  *   $client->energy    — TRON 能量租赁(X-API-Key + X-Secret-Key)
  *   $client->smtp      — SMTP 聚合(Bearer Token)
+ *   $client->account   — 账户余额 / 充值地址(MPK 双密钥)
+ *   $client->vcard     — 虚拟信用卡(MPK 双密钥 + 敏感操作 HMAC 签名)
  *
  * 用法:
  *
@@ -38,6 +40,8 @@ use NexCore\Namespaces\Exchange;
 use NexCore\Namespaces\Energy;
 use NexCore\Namespaces\Smtp;
 use NexCore\Namespaces\Withdraw;
+use NexCore\Namespaces\Account;
+use NexCore\Namespaces\VCard;
 
 /**
  * Client 是 NexCore SDK 的入口.
@@ -48,7 +52,7 @@ use NexCore\Namespaces\Withdraw;
 class Client
 {
     /** SDK 版本号(跟主仓库 v3.x.x 同步) */
-    public const VERSION = '3.1.0';
+    public const VERSION = '3.2.0';
 
     /** @var array<string, mixed> 完整配置 */
     private array $config;
@@ -71,6 +75,12 @@ class Client
     /** @var Withdraw 多链收款 · 提币端命名空间(RSA-2048 签名) */
     public Withdraw $withdraw;
 
+    /** @var Account 账户命名空间(MPK 双密钥) */
+    public Account $account;
+
+    /** @var VCard 虚拟信用卡命名空间(MPK 双密钥 + HMAC 签名) */
+    public VCard $vcard;
+
     /**
      * @param array{
      *     base_url: string,
@@ -82,6 +92,8 @@ class Client
      *     withdraw_api_key?: string,
      *     withdraw_private_key_pem?: string,
      *     withdraw_platform_public_key_pem?: string,
+     *     api_key?: string,
+     *     api_secret?: string,
      *     timeout?: int,
      *     verify_ssl?: bool,
      *     user_agent?: string,
@@ -110,6 +122,8 @@ class Client
         $this->energy   = new Energy($this);
         $this->smtp     = new Smtp($this);
         $this->withdraw = new Withdraw($this);
+        $this->account  = new Account($this);
+        $this->vcard    = new VCard($this);
     }
 
     /**

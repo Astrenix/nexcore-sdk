@@ -9,6 +9,8 @@ export interface ClientConfig {
   energyApiKey?: string;
   energySecretKey?: string;
   smtpApiKey?: string;
+  apiKey?: string;
+  apiSecret?: string;
   withdrawApiKey?: string;
   withdrawPrivateKeyPem?: string;
   withdrawPlatformPublicKeyPem?: string;
@@ -26,11 +28,14 @@ export class NexCoreError extends Error {
 export class Client {
   constructor(config: ClientConfig);
   static readonly VERSION: string;
+  static verifyWebhook(params: Record<string, unknown>, secret: string): boolean;
   payment: PaymentNamespace;
   exchange: ExchangeNamespace;
   energy: EnergyNamespace;
   smtp: SmtpNamespace;
   withdraw: WithdrawNamespace;
+  account: AccountNamespace;
+  vcard: VCardNamespace;
 }
 
 // ============ Payment ============
@@ -153,4 +158,39 @@ export interface WithdrawNamespace {
     body: string,
     base64Signature: string
   ): void;
+}
+
+// ============ Account (MPK apiKey + apiSecret 双密钥) ============
+
+export interface AccountNamespace {
+  getBalance(): Promise<Record<string, unknown>>;
+  getDepositAddress(): Promise<Record<string, unknown>>;
+}
+
+// ============ VCard (虚拟信用卡 · 双密钥读 + HMAC 头签名) ============
+
+export interface VCardListOrdersQuery {
+  page?: number;
+  page_size?: number;
+  status?: string;
+  order_type?: string;
+  [k: string]: unknown;
+}
+
+export interface VCardNamespace {
+  // 双密钥 header(只读)
+  getInfo(): Promise<Record<string, unknown>>;
+  listBins(): Promise<Record<string, unknown>>;
+  listCards(): Promise<Record<string, unknown>>;
+  getCardTransactions(cardId: string | number): Promise<Record<string, unknown>>;
+  listOrders(query?: VCardListOrdersQuery): Promise<Record<string, unknown>>;
+  getOrder(orderId: string | number): Promise<Record<string, unknown>>;
+  updateCardRemark(cardId: string | number, remark: string): Promise<Record<string, unknown>>;
+  // HMAC 头签名(敏感 / 写)
+  sign(ts: string, nonce: string, method: string, path: string, rawQuery: string, body: string): string;
+  getCardDetails(cardId: string | number): Promise<Record<string, unknown>>;
+  getCardCode(cardId: string | number): Promise<Record<string, unknown>>;
+  openCard(params: Record<string, unknown>): Promise<Record<string, unknown>>;
+  rechargeCard(cardId: string | number, params: Record<string, unknown>): Promise<Record<string, unknown>>;
+  cancelCard(cardId: string | number): Promise<Record<string, unknown>>;
 }

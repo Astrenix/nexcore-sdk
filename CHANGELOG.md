@@ -2,6 +2,20 @@
 
 本仓库遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 和 [Semantic Versioning](https://semver.org/lang/zh-CN/).
 
+## [3.2.0] - 2026-06-28
+
+### 新增
+
+- 4 个语言 SDK 全部新增 **`.account` namespace** — 账户(2 endpoint):
+  - `GET /api/v1/account/balance` 账户 USD 余额(顺带 TRON 固定充值地址)
+  - `GET /api/v1/account/deposit-address` 获取/分配 TRON 固定充值地址
+- 4 个语言 SDK 全部新增 **`.vcard` namespace** — 虚拟信用卡(12 endpoint):
+  - 读(X-API-Key + X-Secret-Key):`getInfo` / `listBins` / `listCards` / `getCardTransactions` / `listOrders` / `getOrder` / `updateCardRemark`
+  - 资金/敏感(**HMAC 头签名**):`getCardDetails` / `getCardCode`(完整卡号·CVV·有效期 / 3DS 验证码)、`openCard` / `rechargeCard` / `cancelCard`
+- 新增配置项 `apiKey` / `apiSecret`(MPK 商户密钥,Account 与 VCard 共用)
+- **新增 header 式 HMAC 签名**:`X-Signature = HMAC-SHA256(apiSecret, timestamp + nonce + method + path + rawQuery + body)`,头 `X-Key-ID / X-Timestamp / X-Nonce / X-Signature`;POST 采用 body-raw 机制(签名串与实际字节一致)
+- 新增各语言 **`verifyWebhook(params, secret)`** — 校验平台主动推送的虚拟卡 webhook 事件签名(开卡/充值/注销/新交易/新验证码),复刻后端 HMAC 验签 + 提示 sign_ts/nonce 防重放
+
 ## [3.1.0] - 2026-05-23
 
 ### 新增

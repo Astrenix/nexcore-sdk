@@ -16,10 +16,13 @@
     - :mod:`nexcore.namespaces.exchange` — 汇率
     - :mod:`nexcore.namespaces.energy` — TRON 能量租赁
     - :mod:`nexcore.namespaces.smtp` — SMTP 聚合 API
+    - :mod:`nexcore.namespaces.account` — 账户余额 / 充值地址
+    - :mod:`nexcore.namespaces.vcard` — 虚拟信用卡(含 verify_webhook 回调验签)
 """
 
 from .client import Client
 from .errors import NexCoreError
+from .namespaces.vcard import verify_webhook as verify_vcard_webhook
 
-__version__ = "3.1.0"
-__all__ = ["Client", "NexCoreError", "__version__"]
+__version__ = "3.2.0"
+__all__ = ["Client", "NexCoreError", "verify_vcard_webhook", "__version__"]

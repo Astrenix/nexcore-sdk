@@ -7,6 +7,8 @@
 //   - client.Exchange  — 汇率(X-App-Key + X-App-Secret header)
 //   - client.Energy    — TRON 能量租赁(X-API-Key + X-Secret-Key)
 //   - client.SMTP      — SMTP 聚合(Bearer Token)
+//   - client.Account   — 账户余额 / 充值地址(X-API-Key + X-Secret-Key)
+//   - client.VCard     — 虚拟信用卡(读用双密钥;开卡/充值/注销/敏感信息用 HMAC 签名)
 //
 // 使用:
 //
@@ -39,4 +41,4 @@
 package nexcore
 
 // Version is the SDK version, kept in sync with the public repository tags.
-const Version = "3.1.0"
+const Version = "3.2.0"

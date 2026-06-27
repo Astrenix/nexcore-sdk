@@ -10,6 +10,8 @@ from .namespaces.exchange import Exchange
 from .namespaces.energy import Energy
 from .namespaces.smtp import Smtp
 from .namespaces.withdraw import Withdraw
+from .namespaces.account import Account
+from .namespaces.vcard import VCard
 
 
 class Client:
@@ -21,6 +23,8 @@ class Client:
         - ``client.exchange`` — 汇率(X-App-Key + X-App-Secret header)
         - ``client.energy``   — TRON 能量租赁(X-API-Key + X-Secret-Key)
         - ``client.smtp``     — SMTP 聚合(Bearer Token)
+        - ``client.account``  — 账户余额 / 充值地址(X-API-Key + X-Secret-Key)
+        - ``client.vcard``    — 虚拟信用卡(读=双密钥;写/敏感=HMAC 头签名)
 
     用法::
 
@@ -46,7 +50,7 @@ class Client:
     所有错误统一抛 :class:`NexCoreError`(含 ``code`` / ``request_id`` / ``http_status``).
     """
 
-    VERSION = "3.1.0"
+    VERSION = "3.2.0"
 
     def __init__(
         self,
@@ -60,6 +64,8 @@ class Client:
         withdraw_api_key: Optional[str] = None,
         withdraw_private_key_pem: Optional[str] = None,
         withdraw_platform_public_key_pem: Optional[str] = None,
+        api_key: Optional[str] = None,
+        api_secret: Optional[str] = None,
         timeout: int = 30,
         verify_ssl: bool = True,
         user_agent: Optional[str] = None,
@@ -73,6 +79,8 @@ class Client:
             energy_api_key: 能量租赁 X-API-Key.
             energy_secret_key: 能量租赁 X-Secret-Key.
             smtp_api_key: SMTP 聚合 API 的 ``smk_`` 前缀 Token.
+            api_key: MPK 商户密钥 Key(Account / VCard 共用,对应 X-API-Key / X-Key-ID).
+            api_secret: MPK 商户密钥 Secret(Account / VCard 共用,对应 X-Secret-Key / 签名密钥).
             timeout: HTTP 超时秒数,默认 30.
             verify_ssl: 是否验证 SSL 证书,默认 True.
             user_agent: 自定义 UA(可选).
@@ -90,6 +98,8 @@ class Client:
             "withdraw_api_key": withdraw_api_key,
             "withdraw_private_key_pem": withdraw_private_key_pem,
             "withdraw_platform_public_key_pem": withdraw_platform_public_key_pem,
+            "api_key": api_key,
+            "api_secret": api_secret,
         }
 
         self.http = Http(
@@ -104,6 +114,8 @@ class Client:
         self.energy = Energy(self)
         self.smtp = Smtp(self)
         self.withdraw = Withdraw(self)
+        self.account = Account(self)
+        self.vcard = VCard(self)
 
     def get(self, key: str) -> Optional[Any]:
         """取配置字段(各 namespace 内部使用).

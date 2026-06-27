@@ -32,6 +32,13 @@ type Config struct {
 	// WithdrawPlatformPublicKeyPEM 平台 RSA 公钥 PEM(用于回调验签,可选).
 	WithdrawPlatformPublicKeyPEM string
 
+	// APIKey 商户 API Key(MPK 商户密钥的 key 部分);account 与 vcard 命名空间共用.
+	// 双密钥读场景作为 X-API-Key,HMAC 签名写场景作为 X-Key-ID.
+	APIKey string
+	// APISecret 商户 API Secret(MPK 商户密钥的 secret 部分);account 与 vcard 命名空间共用.
+	// 双密钥读场景作为 X-Secret-Key,HMAC 签名写场景作为 HMAC-SHA256 的密钥.
+	APISecret string
+
 	// Timeout HTTP 超时,默认 30s.
 	Timeout time.Duration
 
@@ -47,6 +54,8 @@ type Config struct {
 //	c.Exchange  - 汇率
 //	c.Energy    - TRON 能量租赁
 //	c.SMTP      - SMTP 聚合
+//	c.Account   - 账户(余额 / 充值地址)
+//	c.VCard     - 虚拟信用卡
 //
 // 所有方法返回 json.RawMessage,业务方自行 json.Unmarshal 到具体 struct.
 type Client struct {
@@ -63,6 +72,10 @@ type Client struct {
 	SMTP *SMTPNamespace
 	// Withdraw 提币命名空间(多链收款业务的资金出库端,RSA-2048 签名)
 	Withdraw *WithdrawNamespace
+	// Account 账户命名空间(余额 / 充值地址,双密钥读)
+	Account *AccountNamespace
+	// VCard 虚拟信用卡命名空间(读用双密钥,开卡/充值/注销/敏感信息用 HMAC 签名)
+	VCard *VCardNamespace
 }
 
 // NewClient creates a new NexCore client.
@@ -94,5 +107,7 @@ func NewClient(cfg Config) *Client {
 	c.Energy = &EnergyNamespace{c: c}
 	c.SMTP = &SMTPNamespace{c: c}
 	c.Withdraw = &WithdrawNamespace{c: c}
+	c.Account = &AccountNamespace{c: c}
+	c.VCard = &VCardNamespace{c: c}
 	return c
 }

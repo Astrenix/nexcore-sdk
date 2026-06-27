@@ -5,7 +5,7 @@
 **面向开发者的综合数字基础服务平台 · 官方多语言 SDK**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![v3.0.0](https://img.shields.io/badge/version-3.0.0-blue.svg)](./CHANGELOG.md)
+[![v3.2.0](https://img.shields.io/badge/version-3.2.0-blue.svg)](./CHANGELOG.md)
 [![Website](https://img.shields.io/badge/website-nexcores.net-2563eb.svg)](https://nexcores.net)
 [![Docs](https://img.shields.io/badge/docs-online-22c55e.svg)](https://nexcores.net/docs)
 
@@ -98,6 +98,8 @@ NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖**核心 4 个**(其
 | 汇率 Exchange | `/api/v1/rate` / `/api/v1/rates*` / `/api/v1/convert` | X-App-Key + X-App-Secret | **5** |
 | 能量租赁 Energy | `/api/v1/energy/*` | X-API-Key + X-Secret-Key | **8** |
 | SMTP 聚合 Smtp | `/api/v1/smtp/*` | Authorization: Bearer smk_xxx | **5** |
+| 账户 Account | `/api/v1/account/*` | X-API-Key + X-Secret-Key | **2** |
+| 虚拟信用卡 VCard | `/api/v1/vcard/*` | 读=X-API-Key+X-Secret-Key;开卡/充值/注销/卡详情/验证码=HMAC 头签名 | **12** |
 
 所有 endpoint 完全对照 [`/docs`](https://nexcores.net/docs) 在线文档,字段命名与后端 100% 一致.
 
@@ -299,7 +301,7 @@ raw, err := c.Payment.CreateOrder(map[string]any{
 
 ## 版本
 
-当前 SDK 版本:**v3.0.0**(跟主仓库 v3.x 主线一致)
+当前 SDK 版本:**v3.2.0**(跟主仓库 v3.x 主线一致)
 
 ## 反馈
 
