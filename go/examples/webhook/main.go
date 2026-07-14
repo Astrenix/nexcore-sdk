@@ -1,11 +1,11 @@
-// NexCore Go SDK — Webhook 回调签名校验
+// Tovanix Go SDK — Webhook 回调签名校验
 //
 // 部署:
 //   cd sdk/go && go run examples/webhook.go
 //
-// 然后在 NexCore 用户后台「应用配置」的 notify_url 填你的 URL。
+// 然后在 Tovanix 用户后台「应用配置」的 notify_url 填你的 URL。
 //
-// NexCore 支付成功后会 POST JSON 到这里,本示例:
+// Tovanix 支付成功后会 POST JSON 到这里,本示例:
 //   1. 校验签名(SDK 一行搞定,内部用 hmac.Equal 常量时间比较)
 //   2. 业务处理(发货 / 更新 DB,务必幂等)
 //   3. 返回 200 OK(否则平台会重试)

@@ -1,6 +1,6 @@
-# NexCore Node.js SDK
+# Tovanix Node.js SDK
 
-全能 Node.js 客户端,覆盖 Payment / Exchange / Energy / SMTP / Withdraw / Account / VCard **7 大命名空间全部 44 个 v1 公开 endpoint**.
+Tovanix(原 NexCore)平台全能 Node.js 客户端,覆盖 Payment / Exchange / Energy / SMTP / Withdraw / Account / VCard **7 大命名空间全部 44 个 v1 公开 endpoint**.
 
 **零运行时依赖**(仅 Node.js 标准库 `http`/`https`/`crypto`).
 

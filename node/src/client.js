@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * NexCore Official Node.js SDK 主客户端.
+ * Tovanix(原 NexCore)Official Node.js SDK 主客户端.
  *
- * 一次配置覆盖 NexCore 平台全部 v1 公开接口,业务按 namespace 划分:
+ * 一次配置覆盖 Tovanix 平台全部 v1 公开接口,业务按 namespace 划分:
  *
  *   client.payment   — 多链收款(HMAC-SHA256 签名)
  *   client.exchange  — 汇率(X-App-Key + X-App-Secret header)
@@ -46,7 +46,7 @@ const { VCard } = require('./namespaces/vcard');
 class Client {
   /**
    * @param {object} config
-   * @param {string} config.baseUrl - NexCore 平台基础 URL
+   * @param {string} config.baseUrl - Tovanix 平台基础 URL
    * @param {string} [config.paymentAppId] - 多链收款 / 汇率应用 ID
    * @param {string} [config.paymentAppKey] - 多链收款 / 汇率应用密钥
    * @param {string} [config.energyApiKey] - 能量租赁 X-API-Key

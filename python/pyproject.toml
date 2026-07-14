@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nexcore-sdk"
 version = "3.2.0"
-description = "Official NexCore Python SDK — Payment / Withdraw / Exchange / Energy / SMTP / Account / VCard all-in-one"
+description = "Official Tovanix (formerly NexCore) Python SDK — Payment / Withdraw / Exchange / Energy / SMTP / Account / VCard all-in-one"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
-authors = [{ name = "NexCore Team" }]
-keywords = ["nexcore", "payment", "crypto", "tron", "usdt", "smtp", "sdk", "trc20"]
+authors = [{ name = "Tovanix Team (Astrenix Inc.)" }]
+keywords = ["nexcore", "tovanix", "payment", "crypto", "tron", "usdt", "smtp", "sdk", "trc20"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",

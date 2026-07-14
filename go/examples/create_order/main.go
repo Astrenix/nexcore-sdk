@@ -1,4 +1,4 @@
-// NexCore Go SDK — 创建支付订单(轮播模式)
+// Tovanix Go SDK — 创建支付订单(轮播模式)
 //
 // 运行:
 //   cd sdk/go && go run examples/create_order.go

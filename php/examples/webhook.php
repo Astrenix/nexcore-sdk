@@ -1,11 +1,11 @@
 <?php
 /**
- * NexCore PHP SDK — Webhook 回调签名校验.
+ * Tovanix PHP SDK — Webhook 回调签名校验.
  *
  * 部署:把本文件放到可公开访问的 URL(如 https://your-domain.com/payment/notify),
  *      然后在用户后台 "应用配置" 的 notify_url 填这个 URL.
  *
- * NexCore 支付成功后会 POST 一个 JSON 到这里,你必须:
+ * Tovanix 支付成功后会 POST 一个 JSON 到这里,你必须:
  *   1. 校验签名(SDK 提供 verifyNotifySign 一行搞定)
  *   2. 处理订单状态(发货 / 更新 DB),务必幂等
  *   3. 返回 200 OK(否则平台会重试)

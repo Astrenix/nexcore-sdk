@@ -1,4 +1,4 @@
-"""NexCore Official Python SDK — public package interface.
+"""Tovanix (formerly NexCore) Official Python SDK — public package interface.
 
 一次 ``from nexcore import Client`` 即可拿到全部业务能力
 (Payment / Withdraw / Exchange / Energy / SMTP).

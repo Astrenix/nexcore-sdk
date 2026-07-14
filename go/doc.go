@@ -1,6 +1,6 @@
-// Package nexcore is the official Go SDK for NexCore platform.
+// Package nexcore is the official Go SDK for the Tovanix platform (formerly NexCore).
 //
-// 一次配置覆盖 NexCore 平台全部 v1 公开接口,业务按 namespace 划分:
+// 一次配置覆盖 Tovanix 平台全部 v1 公开接口,业务按 namespace 划分:
 //
 //   - client.Payment   — 多链收款(HMAC-SHA256 签名)
 //   - client.Withdraw  — 多链收款 · 提币(RSA-2048 签名)

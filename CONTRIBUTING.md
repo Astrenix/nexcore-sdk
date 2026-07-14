@@ -1,6 +1,6 @@
-# Contributing to NexCore SDK
+# Contributing to Tovanix SDK
 
-谢谢你想为 NexCore SDK 贡献!以下是参与流程。
+谢谢你想为 Tovanix SDK(原 NexCore SDK)贡献!以下是参与流程。
 
 ## 仓库结构
 
@@ -34,7 +34,7 @@ sdk/
 
 ```markdown
 **SDK 语言版本**:Python 3.11 / nexcore-sdk-py 3.0.1
-**NexCore API 版本**:v3.0
+**Tovanix API 版本**:v3.0
 **问题描述**:...
 **最小复现代码**:```python
 ...
@@ -45,7 +45,7 @@ sdk/
 
 ## 安全漏洞
 
-请**不要**在公开 issue 报告安全漏洞。发邮件到 `security@nexcores.net` 或通过 NexCore 用户后台「工单」选择「安全」类型。
+请**不要**在公开 issue 报告安全漏洞。发邮件到 `security@tovanix.com` 或通过 Tovanix 用户后台「工单」选择「安全」类型。
 
 ## 许可
 

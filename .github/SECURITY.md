@@ -13,8 +13,8 @@
 
 通过以下渠道私下报告:
 
-- 邮件:`security@nexcores.net`(优先,推荐)
-- NexCore 用户后台 → 工单 → 选择「安全」类型
+- 邮件:`security@tovanix.com`(优先,推荐)
+- Tovanix 用户后台 → 工单 → 选择「安全」类型
 
 请尽可能提供:
 

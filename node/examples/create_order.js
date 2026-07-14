@@ -1,5 +1,5 @@
 /**
- * NexCore Node.js SDK — 创建支付订单(轮播模式)
+ * Tovanix Node.js SDK — 创建支付订单(轮播模式)
  *
  * 运行:
  *   node examples/create_order.js

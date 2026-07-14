@@ -1,7 +1,7 @@
 {
   "name": "@nexcore/sdk",
   "version": "3.2.0",
-  "description": "Official NexCore Node.js SDK — Payment / Withdraw / Exchange / Energy / SMTP / Account / VCard. Covers all v1 public API endpoints.",
+  "description": "Official Tovanix (formerly NexCore) Node.js SDK — Payment / Withdraw / Exchange / Energy / SMTP / Account / VCard. Covers all v1 public API endpoints.",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
@@ -16,6 +16,7 @@
   },
   "keywords": [
     "nexcore",
+    "tovanix",
     "payment",
     "crypto",
     "tron",
@@ -30,7 +31,7 @@
   },
   "dependencies": {},
   "license": "MIT",
-  "author": "NexCore Team",
+  "author": "Tovanix Team (Astrenix Inc.)",
   "homepage": "https://github.com/DoBestone/nexcore-sdk",
   "repository": {
     "type": "git",

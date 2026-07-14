@@ -1,6 +1,6 @@
 <?php
 /**
- * NexCore PHP SDK — 创建支付订单(轮播模式).
+ * Tovanix PHP SDK — 创建支付订单(轮播模式).
  *
  * 执行:composer install,然后 php examples/create_order.php
  */

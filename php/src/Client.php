@@ -1,8 +1,8 @@
 <?php
 /**
- * NexCore Official PHP SDK 主客户端.
+ * Tovanix(原 NexCore)Official PHP SDK 主客户端.
  *
- * 一次配置覆盖 NexCore 平台全部 v1 公开接口,业务按 namespace 划分:
+ * 一次配置覆盖 Tovanix 平台全部 v1 公开接口,业务按 namespace 划分:
  *
  *   $client->payment   — 多链收款(HMAC-SHA256 签名)
  *   $client->exchange  — 汇率(X-App-Key + X-App-Secret header)
@@ -44,7 +44,7 @@ use NexCore\Namespaces\Account;
 use NexCore\Namespaces\VCard;
 
 /**
- * Client 是 NexCore SDK 的入口.
+ * Client 是 Tovanix SDK 的入口.
  *
  * 内部组合 Http 传输层 + 4 个业务 namespace.
  * 构造时把整个 config 数组保存,各 namespace 通过 get() 取需要的字段.

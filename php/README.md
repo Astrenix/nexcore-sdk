@@ -1,6 +1,6 @@
-# NexCore PHP SDK
+# Tovanix PHP SDK
 
-全能 PHP 客户端,覆盖 Payment / Exchange / Energy / SMTP / Withdraw / Account / VCard **7 大命名空间全部 44 个 v1 公开 endpoint**.
+Tovanix(原 NexCore)平台全能 PHP 客户端,覆盖 Payment / Exchange / Energy / SMTP / Withdraw / Account / VCard **7 大命名空间全部 44 个 v1 公开 endpoint**.
 
 ## 环境
 

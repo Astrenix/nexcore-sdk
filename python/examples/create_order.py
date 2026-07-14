@@ -1,4 +1,4 @@
-"""NexCore Python SDK — 创建支付订单(轮播模式).
+"""Tovanix Python SDK — 创建支付订单(轮播模式).
 
 运行:
     python examples/create_order.py

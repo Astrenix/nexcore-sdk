@@ -4,6 +4,10 @@
 
 ## [3.3.0] - 2026-07-15
 
+### 品牌(Brand)
+
+- **平台品牌升级:NexCore → Tovanix**([tovanix.com](https://tovanix.com),运营主体 Astrenix Inc.,美国);仅信息层更名(README / 文档 / 注释),包名(`@nexcore/sdk` / `nexcore-sdk` / `nexcore/sdk`)、类名(`NexCoreError` 等)、Go module 路径等技术命名保持不变,既有集成零影响
+
 ### 修复(Fixed)
 
 - **Energy**:`getPrice` / `estimateEnergy` 硬编码 query 参数名与后端不符(`energy` → `energy_amount`、`receive_addr` → `to_address`),此前调用必返 400;四语言同步修正

@@ -1,39 +1,44 @@
 <div align="center">
 
-# NexCore Official SDKs
+# Tovanix Official SDKs
 
-**面向开发者的综合数字基础服务平台 · 官方多语言 SDK**
+**面向开发者的综合数字基础服务平台 · 官方多语言 SDK**(原 NexCore)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![v3.3.0](https://img.shields.io/badge/version-3.3.0-blue.svg)](./CHANGELOG.md)
-[![Website](https://img.shields.io/badge/website-nexcores.net-2563eb.svg)](https://nexcores.net)
-[![Docs](https://img.shields.io/badge/docs-online-22c55e.svg)](https://nexcores.net/docs)
+[![Website](https://img.shields.io/badge/website-tovanix.com-2563eb.svg)](https://tovanix.com)
+[![Docs](https://img.shields.io/badge/docs-online-22c55e.svg)](https://tovanix.com/docs)
 
-**官方网站** · [nexcores.net](https://nexcores.net) &nbsp;|&nbsp;
-**API 文档** · [/docs](https://nexcores.net/docs) &nbsp;|&nbsp;
-**易记** · [9188.PRO](https://9188.pro)
+**官方网站** · [tovanix.com](https://tovanix.com) &nbsp;|&nbsp;
+**API 文档** · [/docs](https://tovanix.com/docs) &nbsp;|&nbsp;
+**易记** · [9188.PRO](https://9188.pro) &nbsp;|&nbsp;
+nexcores.net(旧域名,仍可用)
 
 </div>
 
 ---
 
-## 关于 NexCore
+## 关于 Tovanix
 
-**NexCore** 是面向开发者与中小团队的**综合数字基础服务平台**,把"加密支付、跨链兑换、TRON 能量、虚拟卡、云服务、海外通讯、AI 网关"等高频但难自研的能力统一封装为 API,让一个开发者也能跑完跨境业务全链路.
+**Tovanix** 是面向开发者与中小团队的**综合数字基础服务平台**,把"加密支付、跨链兑换、TRON 能量、虚拟卡、云服务、海外通讯、AI 网关"等高频但难自研的能力统一封装为 API,让一个开发者也能跑完跨境业务全链路.品牌前身为 **NexCore**,由 **Astrenix Inc.(US)** 运营.
 
 > 自 **2021 年 7 月** 启动以来,服务范围已经从最初的多链收款扩展到 **9 大业务模块**,是少数同时提供加密金融、全球通讯、AI 接入完整工具栈的开发者平台之一.
+
+> **📛 品牌与技术命名**
+>
+> 平台品牌已升级为 **Tovanix**(法律主体 Astrenix Inc.,美国).为保障既有集成兼容,npm / pip / composer 包名(`@nexcore/sdk` / `nexcore-sdk` / `nexcore/sdk`)与 Go module 路径(`github.com/DoBestone/nexcore-sdk/go`)**暂沿用 nexcore**,类名(如 `NexCoreError`)、命名空间、config key 均不变;未来大版本再迁移包名.
 
 **设计哲学**
 
 - 🔌 **一次接入,全栈可用** — 一个 SDK 实例覆盖所有业务,共享 baseUrl + 凭据池
 - 🛡️ **自托管友好** — Webhook HMAC 签名 + 常量时间校验,合规可审计
 - 🌍 **多语言对等** — PHP / Python / Node.js / Go 行为完全一致,迁移零成本
-- 📜 **永远跟文档对齐** — SDK 字段命名与 [`/docs`](https://nexcores.net/docs) 100% 一致,不需要"翻译表"
+- 📜 **永远跟文档对齐** — SDK 字段命名与 [`/docs`](https://tovanix.com/docs) 100% 一致,不需要"翻译表"
 - 🪶 **零或最少依赖** — Go / Node 零运行时依赖,Python 仅 `requests`,PHP 仅 `ext-curl`
 
 ## 平台业务一览
 
-NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖 **7 个命名空间**(payment / exchange / energy / smtp / withdraw / account / vcard,其余业务见线上文档说明):
+Tovanix 平台共 **9 个业务模块**,本 SDK 当前覆盖 **7 个命名空间**(payment / exchange / energy / smtp / withdraw / account / vcard,其余业务见线上文档说明):
 
 <table>
 <tr>
@@ -107,7 +112,7 @@ NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖 **7 个命名空间
 | 账户 Account | `/api/v1/account/*` | X-API-Key + X-Secret-Key | **2** |
 | 虚拟信用卡 VCard | `/api/v1/vcard/*` | 读=X-API-Key+X-Secret-Key;开卡/充值/注销/卡详情/验证码=HMAC 头签名 | **12** |
 
-所有 endpoint 完全对照 [`/docs`](https://nexcores.net/docs) 在线文档,字段命名与后端 100% 一致.
+所有 endpoint 完全对照 [`/docs`](https://tovanix.com/docs) 在线文档,字段命名与后端 100% 一致.
 
 ## 支持语言
 
@@ -326,12 +331,12 @@ raw, err := c.Payment.CreateOrder(map[string]any{
 ## 反馈
 
 - [GitHub Issues](https://github.com/DoBestone/nexcore-sdk/issues) — 公开提问 / Bug 反馈
-- NexCore 用户后台「工单」 — 私下技术支持 / 账号问题
-- `security@nexcores.net` — 安全漏洞(详见 [`SECURITY.md`](.github/SECURITY.md))
+- Tovanix 用户后台「工单」 — 私下技术支持 / 账号问题
+- `security@tovanix.com` — 安全漏洞(详见 [`SECURITY.md`](.github/SECURITY.md))
 
 ## License
 
-[MIT](./LICENSE) © 2026 NexCore
+[MIT](./LICENSE) © 2026 Tovanix(Astrenix Inc.)
 
 ---
 
@@ -339,6 +344,6 @@ raw, err := c.Payment.CreateOrder(map[string]any{
 
 **🚀 立即开始**
 
-[官方网站](https://nexcores.net) · [完整 API 文档](https://nexcores.net/docs) · [注册账号](https://nexcores.net/register) · [GitHub Issues](https://github.com/DoBestone/nexcore-sdk/issues)
+[官方网站](https://tovanix.com) · [完整 API 文档](https://tovanix.com/docs) · [注册账号](https://tovanix.com/register) · [GitHub Issues](https://github.com/DoBestone/nexcore-sdk/issues)
 
 </div>

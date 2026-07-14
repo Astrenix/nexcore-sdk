@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * NexCore Official Node.js SDK — 公开入口.
+ * Tovanix(原 NexCore)Official Node.js SDK — 公开入口.
  *
  * 一次 `require('@nexcore/sdk')` 即可拿到全部业务能力.
  *

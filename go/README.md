@@ -1,6 +1,6 @@
-# NexCore Go SDK
+# Tovanix Go SDK
 
-全能 Go 客户端,覆盖 Payment / Exchange / Energy / SMTP / Withdraw / Account / VCard **7 大命名空间全部 44 个 v1 公开 endpoint**.
+Tovanix(原 NexCore)平台全能 Go 客户端,覆盖 Payment / Exchange / Energy / SMTP / Withdraw / Account / VCard **7 大命名空间全部 44 个 v1 公开 endpoint**.
 
 **零依赖**(仅标准库 `net/http` / `crypto/hmac` / `encoding/json`).
 
