@@ -45,12 +45,15 @@ export interface PaymentCreateOrderParams {
   amount: string | number;
   currency: string;
   trade_type: string;
-  call_type?: 'rotation' | 'one_to_one';
-  user_id?: string;
+  /** 必填;本接口只支持 rotation,一对一模式走 bindAddress/getUserAddress */
+  call_type: 'rotation';
+  /** 用户标识(一对一模式必填) */
+  out_user_id?: string;
   timeout?: number;
   subject?: string;
   notify_url?: string;
   return_url?: string;
+  order_type?: 'normal' | 'recharge';
   [k: string]: unknown;
 }
 
@@ -61,7 +64,8 @@ export interface PaymentNamespace {
   closeOrder(outOrderId: string): Promise<Record<string, unknown>>;
   getAppConfig(): Promise<Record<string, unknown>>;
   bindAddress(userId: string, tradeType: string): Promise<Record<string, unknown>>;
-  getUserAddress(userId: string, tradeType: string): Promise<Record<string, unknown>>;
+  /** 签名只含 app_id + user_id(与 bindAddress 不同,无 trade_type) */
+  getUserAddress(userId: string): Promise<Record<string, unknown>>;
   unbindAddress(userId: string): Promise<Record<string, unknown>>;
   verifyNotifySign(payload: Record<string, unknown>): boolean;
 }
@@ -78,57 +82,106 @@ export interface ExchangeNamespace {
 
 // ============ Energy ============
 
+export type EnergyPeriod = '1H' | '1D' | '3D' | '7D' | '30D';
+
 export interface EnergyCreateOrderParams {
-  receive_addr: string;
-  energy: number;
-  period: '1H' | '6H' | '1D' | '3D' | '1W';
-  out_serial?: string;
+  receive_address: string;
+  energy_amount: number;
+  period: EnergyPeriod;
+  out_trade_no?: string;
+  remark?: string;
+  [k: string]: unknown;
+}
+
+export interface EnergyOnetimeOrderParams {
+  receive_address: string;
+  period: EnergyPeriod;
+  out_trade_no?: string;
+  remark?: string;
   [k: string]: unknown;
 }
 
 export interface EnergyNamespace {
   getInfo(): Promise<Record<string, unknown>>;
-  getPrice(energy: number, period?: string): Promise<Record<string, unknown>>;
-  estimateEnergy(receiveAddr: string): Promise<Record<string, unknown>>;
+  getPrice(energyAmount: number, period?: EnergyPeriod): Promise<Record<string, unknown>>;
+  estimateEnergy(toAddress: string): Promise<Record<string, unknown>>;
   createOrder(params: EnergyCreateOrderParams): Promise<Record<string, unknown>>;
-  createOnetimeOrder(params: EnergyCreateOrderParams): Promise<Record<string, unknown>>;
+  createOnetimeOrder(params: EnergyOnetimeOrderParams): Promise<Record<string, unknown>>;
   queryOrder(serial: string): Promise<Record<string, unknown>>;
-  listOrders(filter?: Record<string, unknown>): Promise<Record<string, unknown>>;
+  listOrders(filter?: { page?: number; page_size?: number; status?: -1 | 0 | 40 | 41 }): Promise<Record<string, unknown>>;
   reclaimOrder(serial: string): Promise<Record<string, unknown>>;
 }
 
 // ============ SMTP ============
+
+export interface SmtpAttachment {
+  filename: string;
+  content_base64: string;
+  content_type: string;
+}
 
 export interface SmtpSendParams {
   to: string;
   subject: string;
   body: string;
   is_html?: boolean;
-  account_id?: number;
+  from_name?: string;
   reply_to?: string;
+  /** 纯文本正文;与 HTML 同时提供时以 multipart/alternative 发送 */
+  text_body?: string;
+  /** 自定义邮件头(核心头不可覆盖) */
+  headers?: Record<string, string>;
+  cc?: string[];
+  bcc?: string[];
+  attachments?: SmtpAttachment[];
+  account_id?: number;
+  /** 定时发送(RFC3339);晚于当前 30s 以上则排期 */
+  send_at?: string;
+}
+
+export interface SmtpBatchRecipient {
+  to: string;
+  variables?: Record<string, string>;
+  from_name?: string;
 }
 
 export interface SmtpSendBatchParams {
-  to: string[];
-  subject: string;
-  body: string;
+  /** 收件人列表(必填);上限 = 订阅 max_batch_size(默认 10) */
+  recipients: SmtpBatchRecipient[];
+  /** 静态模式主题 */
+  subject?: string;
+  /** 静态模式正文,支持 {{var}} 替换;与 template_code 二选一 */
+  body?: string;
+  /** 模板模式:模板 code;与 body 二选一 */
+  template_code?: string;
   is_html?: boolean;
+  reply_to?: string;
+  cc?: string[];
+  bcc?: string[];
+  attachments?: SmtpAttachment[];
+  headers?: Record<string, string>;
   account_id?: number;
 }
 
 export interface SmtpSendTemplateParams {
+  template_code: string;
   to: string;
-  template_id: number;
-  variables: Record<string, unknown>;
-  account_id?: number;
+  variables?: Record<string, string>;
+  from_name?: string;
+}
+
+export interface SmtpSendOptions {
+  /** Idempotency-Key 头;同 key 重试直接返回首次结果,不重复发送/扣配额 */
+  idempotencyKey?: string;
 }
 
 export interface SmtpNamespace {
-  send(params: SmtpSendParams): Promise<Record<string, unknown>>;
-  sendBatch(params: SmtpSendBatchParams): Promise<Record<string, unknown>>;
+  send(params: SmtpSendParams, opts?: SmtpSendOptions): Promise<Record<string, unknown>>;
+  sendBatch(params: SmtpSendBatchParams, opts?: SmtpSendOptions): Promise<Record<string, unknown>>;
   sendTemplate(params: SmtpSendTemplateParams): Promise<Record<string, unknown>>;
   getQuota(): Promise<Record<string, unknown>>;
   getStatus(messageId: string): Promise<Record<string, unknown>>;
+  reportInbound(params: { email?: string; message_id?: string; type?: 'bounce' | 'complaint' }): Promise<Record<string, unknown>>;
 }
 
 // ============ Withdraw (多链收款 · 提币端,RSA-2048) ============
@@ -149,7 +202,7 @@ export interface WithdrawNamespace {
   createWithdraw(params: WithdrawCreateParams): Promise<Record<string, unknown>>;
   getWithdraw(orderId: string): Promise<Record<string, unknown>>;
   getWithdrawableBalance(): Promise<Record<string, unknown>>;
-  quoteFee(chain: string, symbol: string, amount?: string): Promise<Record<string, unknown>>;
+  quoteFee(chain: string, symbol: string, amount: string): Promise<Record<string, unknown>>;
   verifyCallback(
     method: string,
     path: string,

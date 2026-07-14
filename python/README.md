@@ -1,6 +1,6 @@
 # NexCore Python SDK
 
-全能 Python 客户端,覆盖 Payment / Exchange / Energy / SMTP **全部 25 个 v1 公开 endpoint**.
+全能 Python 客户端,覆盖 Payment / Exchange / Energy / SMTP / Withdraw / Account / VCard **7 大命名空间全部 44 个 v1 公开 endpoint**.
 
 ## 环境
 
@@ -36,7 +36,10 @@ nexcore/
     ├── payment.py       多链收款(7 endpoints)
     ├── exchange.py      汇率(5 endpoints)
     ├── energy.py        TRON 能量租赁(8 endpoints)
-    └── smtp.py          SMTP 聚合 API(5 endpoints)
+    ├── smtp.py          SMTP 聚合 API(6 endpoints)
+    ├── withdraw.py      提币(4 endpoints,RSA 签名)
+    ├── account.py       账户(2 endpoints)
+    └── vcard.py         虚拟信用卡(12 endpoints)
 ```
 
 ## 用法
@@ -72,7 +75,7 @@ try:
 
     # 估算能量
     est = client.energy.estimate_energy("TXxxxxxxxxxxxxxxxxxxxxx")
-    print("需要能量:", est["estimated_energy"])
+    print("建议能量:", est["suggested_energy"])
 
     # 发送邮件
     mail = client.smtp.send(
@@ -98,7 +101,7 @@ except NexCoreError as e:
 | `close_order(out_order_id)` | POST | `/api/v1/pay/close` |
 | `get_app_config()` | GET | `/api/v1/pay/app-config` |
 | `bind_address(user_id, trade_type)` | POST | `/api/v1/pay/bind-address` |
-| `get_user_address(user_id, trade_type)` | POST | `/api/v1/pay/get-address` |
+| `get_user_address(user_id)` | POST | `/api/v1/pay/get-address` |
 | `unbind_address(user_id)` | POST | `/api/v1/pay/unbind-address` |
 | `sign(params)` | (工具) | HMAC-SHA256 签名 |
 | `verify_notify_sign(payload)` | (工具) | webhook 校验(常量时间) |
@@ -109,34 +112,69 @@ except NexCoreError as e:
 |---|---|---|
 | `get_rate(from_, to)` | GET | `/api/v1/rate` |
 | `convert(from_, to, amount)` | POST | `/api/v1/convert` |
-| `get_rates(symbols, base)` | GET | `/api/v1/rates` |
+| `get_rates(symbols, base=None)` | GET | `/api/v1/rates` |
 | `get_fiat_rates(base)` | GET | `/api/v1/rates/fiat` |
 | `get_all_rates(base)` | GET | `/api/v1/rates/all` |
 
-注:`from_` 参数尾下划线是为避开 Python `from` 关键字.
+注:`from_` 参数尾下划线是为避开 Python `from` 关键字;`get_rates` 的 `base` 不传时由后端取默认(USDT).
 
 ### `client.energy` — TRON 能量租赁(8 endpoint)
 
 | Python 方法 | HTTP | endpoint |
 |---|---|---|
 | `get_info()` | GET | `/api/v1/energy/info` |
-| `get_price(energy, period='1D')` | GET | `/api/v1/energy/price` |
-| `estimate_energy(receive_addr)` | GET | `/api/v1/energy/estimate-energy` |
+| `get_price(energy_amount, period='1D')` | GET | `/api/v1/energy/price?energy_amount=&period=` |
+| `estimate_energy(to_address)` | GET | `/api/v1/energy/estimate-energy?to_address=` |
 | `create_order(**params)` | POST | `/api/v1/energy/order` |
 | `create_onetime_order(**params)` | POST | `/api/v1/energy/order/onetime` |
 | `query_order(serial)` | GET | `/api/v1/energy/order/:serial` |
 | `list_orders(**filter_)` | GET | `/api/v1/energy/orders` |
 | `reclaim_order(serial)` | POST | `/api/v1/energy/order/reclaim` |
 
-### `client.smtp` — SMTP 聚合(5 endpoint)
+注:租期 `period` 枚举 `1H / 1D / 3D / 7D / 30D`;`create_order` 必填 `receive_address` / `energy_amount` / `period`,可选 `out_trade_no` / `remark`.
+
+### `client.smtp` — SMTP 聚合(6 endpoint)
 
 | Python 方法 | HTTP | endpoint |
 |---|---|---|
 | `send(to, subject, body, ...)` | POST | `/api/v1/smtp/send` |
-| `send_batch(to, subject, body, ...)` | POST | `/api/v1/smtp/send/batch` |
-| `send_template(to, template_id, variables, ...)` | POST | `/api/v1/smtp/send/template` |
+| `send_batch(recipients, ...)` | POST | `/api/v1/smtp/send/batch` |
+| `send_template(to, template_code, variables, from_name=None)` | POST | `/api/v1/smtp/send/template` |
 | `get_quota()` | GET | `/api/v1/smtp/quota` |
 | `get_status(message_id)` | GET | `/api/v1/smtp/status/:message_id` |
+| `report_inbound(email=None, message_id=None, type=None)` | POST | `/api/v1/smtp/inbound` |
+
+- `send` 可选关键字:`from_name` / `reply_to` / `text_body` / `headers` / `cc` / `bcc` / `attachments` / `account_id` / `send_at`(定时,RFC3339)/ `idempotency_key`(写入 `Idempotency-Key` 幂等头)
+- `send_batch` 必填 `recipients` 列表(元素 `{to, variables?, from_name?}`),静态 `subject`+`body` 或 `template_code` 二选一;同样支持 `idempotency_key`
+- `get_quota` 返回 `daily_limit/daily_used/daily_remaining` / `monthly_*` / `expire_at`
+- `report_inbound` 上报退信/投诉(`email` 与 `message_id` 至少其一,`type` = `bounce` | `complaint`)
+
+### `client.withdraw` — 提币(4 endpoint,RSA-PKCS1v15-SHA256 签名)
+
+| Python 方法 | HTTP | endpoint |
+|---|---|---|
+| `create_withdraw(params)` | POST | `/api/v1/withdraw` |
+| `get_withdraw(order_id)` | GET | `/api/v1/withdraw/:id` |
+| `get_withdrawable_balance()` | GET | `/api/v1/balance/withdrawable` |
+| `quote_fee(chain, symbol, amount)` | GET | `/api/v1/fee/quote`(amount 必填) |
+| `sign(...)` / `verify_callback(...)` | (工具) | RSA 签名 / 平台回调验签 |
+
+### `client.account` — 账户(2 endpoint)
+
+| Python 方法 | HTTP | endpoint |
+|---|---|---|
+| `get_balance()` | GET | `/api/v1/account/balance` |
+| `get_deposit_address()` | GET | `/api/v1/account/deposit-address` |
+
+### `client.vcard` — 虚拟信用卡(12 endpoint)
+
+| Python 方法 | HTTP | endpoint |
+|---|---|---|
+| `get_info()` / `list_bins()` / `list_cards()` | GET | `/api/v1/vcard/*`(读,X-API-Key) |
+| `get_card_transactions(card_id)` / `list_orders(**params)` / `get_order(order_id)` | GET | 同上 |
+| `update_card_remark(card_id, remark)` | POST | 同上 |
+| `get_card_details(card_id)` / `get_card_code(card_id)` | GET | 敏感读(HMAC 头签名) |
+| `open_card(**params)` / `recharge_card(card_id, **params)` / `cancel_card(card_id)` | POST | 资金操作(HMAC 头签名) |
 
 ## Webhook 签名校验
 

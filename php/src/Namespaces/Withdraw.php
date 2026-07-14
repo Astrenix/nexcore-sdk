@@ -210,18 +210,15 @@ class Withdraw
     /**
      * 费用预估 — GET /api/v1/fee/quote.
      *
-     * @return array{chain: string, symbol: string, amount?: string, fee_amount: string, fee_asset: string}
+     * @param string $amount 提币金额(必填,后端 chain/symbol/amount 三参数缺一即 400)
+     * @return array{chain: string, symbol: string, amount: string, fee_amount: string, fee_asset: string}
      */
-    public function quoteFee(string $chain, string $symbol, ?string $amount = null): array
+    public function quoteFee(string $chain, string $symbol, string $amount): array
     {
-        if (!$chain || !$symbol) {
-            throw new NexCoreError('chain and symbol are required', -1);
+        if (!$chain || !$symbol || $amount === '') {
+            throw new NexCoreError('chain, symbol and amount are required', -1);
         }
-        $q = ['chain' => $chain, 'symbol' => $symbol];
-        if ($amount !== null && $amount !== '') {
-            $q['amount'] = $amount;
-        }
-        return $this->do('GET', '/api/v1/fee/quote', null, $q);
+        return $this->do('GET', '/api/v1/fee/quote', null, ['chain' => $chain, 'symbol' => $symbol, 'amount' => $amount]);
     }
 
     // ---------- 回调验签 ----------

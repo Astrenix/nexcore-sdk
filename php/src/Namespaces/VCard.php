@@ -288,8 +288,11 @@ class VCard
      *
      * POST /api/v1/vcard/cards
      *
-     * @param array<string, mixed> $params 开卡参数 {bin_id, amount, remark?, ...}
-     * @return array<string, mixed> {card_id, order_id, ...}
+     * @param array{
+     *     bin_platform_id: int,   卡 BIN 平台 ID(必填,listBins 返回)
+     *     amount: float,          开卡金额(必填,> 0)
+     * } $params
+     * @return array<string, mixed> {order_id, status, total_cost}
      * @throws NexCoreError
      */
     public function openCard(array $params): array

@@ -37,7 +37,7 @@ class Exchange {
    *
    * @param {string} from - 来源币种(USDT / TRX / ETH / BTC / USD / CNY ...)
    * @param {string} to - 目标币种
-   * @returns {Promise<object>} {from, to, rate, updated_at}
+   * @returns {Promise<object>} {from, to, rate, inverse, updated_at}
    */
   getRate(from, to) {
     return this._c.http.request('GET', '/api/v1/rate', {
@@ -54,7 +54,7 @@ class Exchange {
    * @param {string} from
    * @param {string} to
    * @param {string|number} amount - 待换算金额
-   * @returns {Promise<object>} {from_amount, to_amount, rate}
+   * @returns {Promise<object>} {from, to, amount, result, rate, updated_at}(result 为换算结果)
    */
   convert(from, to, amount) {
     return this._c.http.request('POST', '/api/v1/convert', {
@@ -66,15 +66,17 @@ class Exchange {
   /**
    * 批量获取多币种到指定基准币的汇率.
    *
-   * `GET /api/v1/rates?symbols=USDT,TRX,ETH&base=CNY`
+   * `GET /api/v1/rates?symbols=USDT,TRX,ETH&base=USDT`
    *
    * @param {string[]} symbols - 待查询币种代码列表
-   * @param {string} [base='CNY'] - 基准币
+   * @param {string} [base] - 基准币;不传由后端取默认(USDT)
    * @returns {Promise<object>} {base, rates: {USDT: 7.23, ...}, updated_at}
    */
-  getRates(symbols, base = 'CNY') {
+  getRates(symbols, base) {
+    const query = { symbols: symbols.join(',') };
+    if (base) query.base = base;
     return this._c.http.request('GET', '/api/v1/rates', {
-      query: { symbols: symbols.join(','), base },
+      query,
       headers: this._headers(),
     });
   }

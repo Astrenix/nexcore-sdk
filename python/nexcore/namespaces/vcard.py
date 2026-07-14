@@ -285,7 +285,11 @@ class VCard:
         ``POST /api/v1/vcard/cards`` — 签名鉴权.
 
         Args:
-            **params: bin / amount / remark 等(以后端文档为准).
+            bin_platform_id (int): 卡段 platform_id(list_bins 返回,必填).
+            amount (float): 开卡充值金额(必填,>0).
+
+        Returns:
+            dict 含 ``order_id`` / ``status`` / ``total_cost``.
         """
         return self._signed_request("POST", "/api/v1/vcard/cards", body_dict=dict(params))
 

@@ -64,33 +64,33 @@ class Energy
     /**
      * 获取指定能量数 + 周期的报价.
      *
-     * GET /api/v1/energy/price?energy=65000&period=1D
+     * GET /api/v1/energy/price?period=1D&energy_amount=65000
      *
-     * @param int    $energy 需要的能量值
-     * @param string $period 租期:1H / 6H / 1D / 3D / 1W,默认 1D
-     * @return array<string, mixed> {price, period, total, ...}
+     * @param int    $energyAmount 需要的能量值(query key = energy_amount)
+     * @param string $period       租期:1H / 1D / 3D / 7D / 30D,默认 1D
+     * @return array<string, mixed> {period, energy_amount, price_trx}
      */
-    public function getPrice(int $energy, string $period = '1D'): array
+    public function getPrice(int $energyAmount, string $period = '1D'): array
     {
         return $this->client->http->request('GET', '/api/v1/energy/price', [
             'headers' => $this->authHeaders(),
-            'query'   => ['energy' => $energy, 'period' => $period],
+            'query'   => ['period' => $period, 'energy_amount' => $energyAmount],
         ]);
     }
 
     /**
      * 根据接收地址估算 TRC20 转账所需能量.
      *
-     * GET /api/v1/energy/estimate-energy?receive_addr=TXxxxxxxxx
+     * GET /api/v1/energy/estimate-energy?to_address=TXxxxxxxxx
      *
-     * @param string $receiveAddr 收款 TRON 地址(T 开头 Base58)
-     * @return array<string, mixed> {estimated_energy, has_usdt_balance, ...}
+     * @param string $toAddress 收款 TRON 地址(T 开头 Base58,34 位)
+     * @return array<string, mixed> {to_address, initialized, suggested_energy}
      */
-    public function estimateEnergy(string $receiveAddr): array
+    public function estimateEnergy(string $toAddress): array
     {
         return $this->client->http->request('GET', '/api/v1/energy/estimate-energy', [
             'headers' => $this->authHeaders(),
-            'query'   => ['receive_addr' => $receiveAddr],
+            'query'   => ['to_address' => $toAddress],
         ]);
     }
 
@@ -100,12 +100,13 @@ class Energy
      * POST /api/v1/energy/order
      *
      * @param array{
-     *     receive_addr: string,    收能量的目标 TRON 地址
-     *     energy: int,             能量数(必须 >= minimum_order_energy)
-     *     period: string,          1H / 6H / 1D / 3D / 1W
-     *     out_serial?: string,     商户侧订单号(可选,做幂等用)
+     *     receive_address: string, 收能量的目标 TRON 地址
+     *     energy_amount: int,      能量数(必须 >= minimum_order_energy)
+     *     period: string,          1H / 1D / 3D / 7D / 30D
+     *     out_trade_no?: string,   商户侧订单号(可选)
+     *     remark?: string,         备注(可选)
      * } $params
-     * @return array<string, mixed> {serial, status, delegated_at, ...}
+     * @return array<string, mixed> {serial, price_trx, deducted_usd}
      */
     public function createOrder(array $params): array
     {
@@ -122,8 +123,16 @@ class Energy
      *
      * 适用场景:用户只做一笔 TRC20 转账,转完即丢能量,不持续占用.
      *
-     * @param array<string, mixed> $params 同 createOrder(可不传 period)
-     * @return array<string, mixed>
+     * 注意:与 createOrder 不同,**没有 energy_amount 字段**,能量数由平台按目标地址估算.
+     *
+     * @param array{
+     *     receive_address: string, 收能量的目标 TRON 地址(必填)
+     *     period: string,          1H / 1D / 3D / 7D / 30D(必填)
+     *     out_trade_no?: string,   商户侧订单号(可选)
+     *     remark?: string,         备注(可选)
+     * } $params
+     * @return array<string, mixed> {serial, price_trx, deducted_usd}
+     *                              price_trx 按上游实际结算,预估为上界,多退少不补
      */
     public function createOnetimeOrder(array $params): array
     {
@@ -139,7 +148,8 @@ class Energy
      * GET /api/v1/energy/order/:serial
      *
      * @param string $serial 订单序列号(string,**不是**数字 id)
-     * @return array<string, mixed>
+     * @return array<string, mixed> {serial, receive_address, energy_amount, period, price_trx,
+     *                               status, status_msg, out_trade_no, order_type, created_at}
      */
     public function queryOrder(string $serial): array
     {
@@ -153,8 +163,9 @@ class Energy
      *
      * GET /api/v1/energy/orders
      *
-     * @param array<string, mixed> $filter {status?, page?, page_size?, ...}
-     * @return array<string, mixed> {list, total, page, ...}
+     * @param array<string, mixed> $filter {status?, page?, page_size?}
+     *                                     status 枚举:-1=全部(默认) / 0=待处理 / 40=成功 / 41=失败
+     * @return array<string, mixed> {list, total, page, page_size}
      */
     public function listOrders(array $filter = []): array
     {
@@ -170,7 +181,7 @@ class Energy
      * POST /api/v1/energy/order/reclaim
      *
      * @param array{serial: string} $params {serial}
-     * @return array<string, mixed>
+     * @return array<string, mixed> {errno, message}
      */
     public function reclaimOrder(array $params): array
     {

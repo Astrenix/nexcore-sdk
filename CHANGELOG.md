@@ -2,6 +2,36 @@
 
 本仓库遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 和 [Semantic Versioning](https://semver.org/lang/zh-CN/).
 
+## [3.3.0] - 2026-07-15
+
+### 修复(Fixed)
+
+- **Energy**:`getPrice` / `estimateEnergy` 硬编码 query 参数名与后端不符(`energy` → `energy_amount`、`receive_addr` → `to_address`),此前调用必返 400;四语言同步修正
+- **Energy**:租期枚举修正 — 后端实际支持 `1H / 1D / 3D / 7D / 30D`,废除文档/注释中不存在的 `6H` / `1W`;`createOrder` 字段说明对齐后端(`receive_address` / `energy_amount` / `out_trade_no` / `remark`)
+- **Payment**:`getUserAddress` 签名串多含 `trade_type` 导致调用必 401(参数移除见下方 Breaking)
+- **Payment**:`createOrder` 签名未按后端规则归一 `amount` 两位小数、`timeout` 未显式传时漏入签名串,导致验签失败;现自动归一 amount 且 timeout 恒参与签名
+- **Payment**:文档字段修正 — `user_id` → `out_user_id`、`expires_at` → `expired_at`、`call_type` 仅 `rotation` 模式必填
+- **Withdraw**:`quoteFee` 的 `amount` 误标可选 — 后端必填,已改为必填参数
+- **SMTP**:`sendBatch` 请求结构错误(`to[]` → `recipients[]`,元素 `{to, variables?, from_name?}`);`sendTemplate` 字段错误(`template_id` → `template_code`,移除 `account_id`,新增 `from_name`)
+- **响应字段说明对齐后端**:SMTP `quota`(`daily_*` / `monthly_*` / `expire_at`)、SMTP `status`、Exchange `convert`(`{from, to, amount, result, rate, updated_at}`)、Exchange `getRate` 补 `inverse` 等一批与后端不符的字段说明
+
+### 新增(Added)
+
+- **SMTP 第 6 个 endpoint**:`POST /api/v1/smtp/inbound` — 退信/投诉上报(`reportInbound` / `report_inbound` / `ReportInbound`),自动把邮箱加入抑制名单并标记对应 send_log
+- **SMTP 幂等与定时**:`send` / `sendBatch` 支持 `Idempotency-Key` 幂等头(同 key 重试直接返回首次结果,不重复发送/扣配额);`send` 支持 `send_at` 定时发送(RFC3339)
+- **SMTP send 全量可选字段**:`from_name` / `reply_to` / `text_body` / `headers` / `cc` / `bcc` / `attachments`
+- **Go**:新增签名语义测试(`payment_test.go`)
+
+### 破坏性变更(Breaking)
+
+- **Payment**:`getUserAddress(userId)` 去掉第二个 `tradeType` 参数(四语言同步);后端签名串不含 trade_type,旧版本该调用必 401
+- **Exchange**:`getRates` 默认 `base` 不再由 SDK 侧写死 `CNY`;不传时由后端取默认(USDT)
+- **SMTP**:`sendBatch` / `sendTemplate` 参数结构对齐后端(`recipients` 数组 / `template_code`),旧调用方式不兼容
+
+### 变更(Changed)
+
+- 各 SDK 覆盖 endpoint 数 43 → **44**(SMTP +1;注:v3.2 加入 account 2 + vcard 12 后实际已是 43,历史文档曾误写 29/25,本版一并修正)
+
 ## [3.2.0] - 2026-06-28
 
 ### 新增

@@ -166,14 +166,14 @@ class Withdraw {
    *
    * @param {string} chain - tron / eth / bsc / polygon / arbitrum / btc
    * @param {string} symbol - USDT / TRX / ETH 等
-   * @param {string} [amount] - 提币金额(可选)
+   * @param {string} amount - 提币金额(必填,后端三参数缺一即 400)
    * @returns {Promise<object>} {chain, symbol, amount, fee_amount, fee_asset}
    */
   quoteFee(chain, symbol, amount) {
-    if (!chain || !symbol) throw new NexCoreError('chain and symbol are required');
-    const q = { chain, symbol };
-    if (amount) q.amount = amount;
-    return this._do('GET', '/api/v1/fee/quote', undefined, q);
+    if (!chain || !symbol || amount == null || amount === '') {
+      throw new NexCoreError('chain, symbol and amount are required');
+    }
+    return this._do('GET', '/api/v1/fee/quote', undefined, { chain, symbol, amount });
   }
 
   // ---------- 回调验签 ----------

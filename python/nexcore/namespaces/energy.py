@@ -51,32 +51,40 @@ class Energy:
         """
         return self._c.http.request("GET", "/api/v1/energy/info", headers=self._headers())
 
-    def get_price(self, energy: int, period: str = "1D") -> Dict[str, Any]:
+    def get_price(self, energy_amount: int, period: str = "1D") -> Dict[str, Any]:
         """获取指定能量数 + 周期的报价.
 
-        ``GET /api/v1/energy/price?energy=65000&period=1D``
+        ``GET /api/v1/energy/price?period=1D&energy_amount=65000``
 
         Args:
-            energy: 需要的能量值.
-            period: 租期 1H / 6H / 1D / 3D / 1W,默认 1D.
+            energy_amount: 需要的能量值.
+            period: 租期 1H / 1D / 3D / 7D / 30D,默认 1D.
+
+        Returns:
+            dict 含 ``period`` / ``energy_amount`` / ``price_trx``
+            (price_trx 为终价,已含 API 加价).
         """
         return self._c.http.request(
             "GET", "/api/v1/energy/price",
-            query={"energy": energy, "period": period},
+            query={"period": period, "energy_amount": energy_amount},
             headers=self._headers(),
         )
 
-    def estimate_energy(self, receive_addr: str) -> Dict[str, Any]:
-        """根据接收地址估算 TRC20 转账所需能量.
+    def estimate_energy(self, to_address: str) -> Dict[str, Any]:
+        """根据目标地址估算 TRC20 转账所需能量.
 
-        ``GET /api/v1/energy/estimate-energy?receive_addr=TXxxxxxxxx``
+        ``GET /api/v1/energy/estimate-energy?to_address=TXxxxxxxxx``
 
         Args:
-            receive_addr: 收款 TRON 地址(T 开头 Base58).
+            to_address: 目标 TRON 地址(T 开头,34 位).
+
+        Returns:
+            dict 含 ``to_address`` / ``initialized`` / ``suggested_energy``
+            (initialized=False 表示地址未持有 USDT,首笔转账消耗更多能量).
         """
         return self._c.http.request(
             "GET", "/api/v1/energy/estimate-energy",
-            query={"receive_addr": receive_addr},
+            query={"to_address": to_address},
             headers=self._headers(),
         )
 
@@ -86,34 +94,48 @@ class Energy:
         ``POST /api/v1/energy/order``
 
         Args:
-            receive_addr (str): 收能量的目标 TRON 地址.
-            energy (int): 能量数(>= minimum_order_energy).
-            period (str): 1H / 6H / 1D / 3D / 1W.
-            out_serial (str, optional): 商户侧订单号(幂等用).
+            receive_address (str): 接收能量的 TRON 地址.
+            energy_amount (int): 能量数(>= minimum_order_energy).
+            period (str): 1H / 1D / 3D / 7D / 30D.
+            out_trade_no (str, optional): 商户侧自定义订单号.
+            remark (str, optional): 备注.
 
         Returns:
-            dict 含 ``serial`` / ``status`` / ``delegated_at`` 等.
+            dict 含 ``serial`` / ``price_trx`` / ``deducted_usd``.
         """
         return self._c.http.request("POST", "/api/v1/energy/order", body=params, headers=self._headers())
 
     def create_onetime_order(self, **params: Any) -> Dict[str, Any]:
-        """创建一次性订单(用完不续).
+        """单笔能量下单(笔数策略,系统按策略自动分配能量数).
 
         ``POST /api/v1/energy/order/onetime``
 
-        适用场景:用户只做一笔 TRC20 转账,转完即丢能量.
+        Args:
+            receive_address (str): 接收能量的 TRON 地址.
+            period (str): 1H / 1D / 3D / 7D / 30D.
+            out_trade_no (str, optional): 商户侧自定义订单号.
+            remark (str, optional): 备注.
+
+        Returns:
+            dict 含 ``serial`` / ``price_trx`` / ``deducted_usd``
+            (price_trx 按上游实际结算,多退少不补).
         """
         return self._c.http.request("POST", "/api/v1/energy/order/onetime", body=params, headers=self._headers())
 
     def query_order(self, serial: str) -> Dict[str, Any]:
-        """查询订单状态.
+        """查询订单状态(会先向上游同步一次最新状态).
 
         ``GET /api/v1/energy/order/:serial``
 
         Args:
             serial: 订单序列号(string,**不是**数字 id).
+
+        Returns:
+            dict 含 ``serial`` / ``receive_address`` / ``energy_amount`` / ``period`` /
+            ``price_trx`` / ``status`` / ``status_msg`` / ``out_trade_no`` /
+            ``order_type`` / ``created_at``;status:0=待处理/处理中,40=成功,41=失败.
         """
-        return self._c.http.request(f"GET", f"/api/v1/energy/order/{serial}", headers=self._headers())
+        return self._c.http.request("GET", f"/api/v1/energy/order/{serial}", headers=self._headers())
 
     def list_orders(self, **filter_: Any) -> Dict[str, Any]:
         """列出所有订单(可按状态过滤).
@@ -121,7 +143,11 @@ class Energy:
         ``GET /api/v1/energy/orders``
 
         Args:
-            **filter_: status / page / page_size 等.
+            **filter_: page(默认 1)/ page_size(默认 20,上限 100)/
+                status(-1=全部,0=待处理/处理中,40=成功,41=失败).
+
+        Returns:
+            dict 含 ``list`` / ``total`` / ``page`` / ``page_size``.
         """
         return self._c.http.request("GET", "/api/v1/energy/orders", query=filter_, headers=self._headers())
 
@@ -132,5 +158,8 @@ class Energy:
 
         Args:
             serial: 订单序列号.
+
+        Returns:
+            dict 含 ``errno`` / ``message``(errno=0 回收成功).
         """
         return self._c.http.request("POST", "/api/v1/energy/order/reclaim", body={"serial": serial}, headers=self._headers())

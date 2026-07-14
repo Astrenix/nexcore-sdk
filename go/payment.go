@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -97,23 +98,65 @@ func (n *PaymentNamespace) signed(params map[string]any) (map[string]any, error)
 //	amount       (string) — 法币金额,推荐两位小数 string 避免浮点误差
 //	currency     (string) — 法币代码 CNY/USD/EUR/JPY/KRW/HKD
 //	trade_type   (string) — 加密币种.链,如 "usdt.trc20"
+//	call_type    (string) — 必填;本接口只支持 "rotation"(轮播),
+//	                        一对一模式请改用 BindAddress 绑定地址接口
 //
 // 可选字段:
 //
-//	call_type    (string) — "rotation"(轮播)或 "one_to_one",默认 rotation
-//	user_id      (string) — 一对一模式必填
+//	out_user_id  (string) — 商户侧用户标识
 //	timeout      (int)    — 订单过期秒数,默认 1800
 //	subject      (string) — 订单描述
 //	notify_url   (string) — webhook 回调 URL
 //	return_url   (string) — 支付成功跳转 URL
 //
-// 返回 {order_id, pay_address, crypto_amount, crypto_currency, expires_at, ...}.
+// 签名口径(与后端一致,SDK 自动处理,body 保持原值):
+//   - amount 归一为两位小数字符串参与签名(后端按 decimal StringFixed(2) 校验)
+//   - timeout 恒参与签名,未传按 "0"
+//
+// 返回 {order_id, out_order_id, amount, currency, crypto_amount, crypto_currency,
+// crypto_symbol, pay_address, pay_url, qrcode_url, payment_page_url, status,
+// created_at, expired_at}.
 func (n *PaymentNamespace) CreateOrder(params map[string]any) (json.RawMessage, error) {
-	p, err := n.signed(params)
+	if n.c.cfg.PaymentAppID == "" {
+		return nil, &Error{Message: "PaymentAppID not configured", Code: -1}
+	}
+	// 签名参数与 body 分离:签名串按后端归一口径构造,body 保持调用方原值.
+	signParams := make(map[string]any, len(params)+2)
+	for k, v := range params {
+		signParams[k] = v
+	}
+	signParams["app_id"] = n.c.cfg.PaymentAppID
+	if amt, ok := params["amount"]; ok {
+		signParams["amount"] = normalizeAmountFixed2(amt)
+	}
+	if _, ok := params["timeout"]; !ok {
+		signParams["timeout"] = "0" // 后端签名串 timeout 恒存在,未传按 0
+	}
+	sig, err := n.Sign(signParams)
 	if err != nil {
 		return nil, err
 	}
-	return n.c.transport.do("POST", "/api/v1/pay/create", &requestOpts{Body: p})
+
+	body := make(map[string]any, len(params)+2)
+	for k, v := range params {
+		body[k] = v
+	}
+	body["app_id"] = n.c.cfg.PaymentAppID
+	body["sign"] = sig
+	return n.c.transport.do("POST", "/api/v1/pay/create", &requestOpts{Body: body})
+}
+
+// normalizeAmountFixed2 把金额归一成两位小数字符串,对齐后端签名口径
+// (decimal.StringFixed(2)).解析失败时原样返回,交由后端报签名/参数错误.
+//
+// 建议调用方直接传两位小数 string(如 "100.00"),避免浮点转换的边界舍入差异.
+func normalizeAmountFixed2(v any) string {
+	s := strings.TrimSpace(fmt.Sprint(v))
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return s
+	}
+	return strconv.FormatFloat(f, 'f', 2, 64)
 }
 
 // QueryOrder queries an order by merchant out_order_id.
@@ -163,8 +206,12 @@ func (n *PaymentNamespace) BindAddress(userID, tradeType string) (json.RawMessag
 // GetUserAddress queries the address bound to a user (one-to-one mode).
 //
 // POST /api/v1/pay/get-address (注意:后端是 POST,不是 GET)
-func (n *PaymentNamespace) GetUserAddress(userID, tradeType string) (json.RawMessage, error) {
-	p, err := n.signed(map[string]any{"user_id": userID, "trade_type": tradeType})
+//
+// 与 BindAddress 的差异:绑定需要 trade_type 指定币种/链,
+// 查询只需要 user_id —— 后端只校验 {app_id, user_id} 两个字段的签名,
+// 不接收 trade_type.
+func (n *PaymentNamespace) GetUserAddress(userID string) (json.RawMessage, error) {
+	p, err := n.signed(map[string]any{"user_id": userID})
 	if err != nil {
 		return nil, err
 	}

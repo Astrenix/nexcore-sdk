@@ -5,7 +5,7 @@
 **面向开发者的综合数字基础服务平台 · 官方多语言 SDK**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![v3.2.0](https://img.shields.io/badge/version-3.2.0-blue.svg)](./CHANGELOG.md)
+[![v3.3.0](https://img.shields.io/badge/version-3.3.0-blue.svg)](./CHANGELOG.md)
 [![Website](https://img.shields.io/badge/website-nexcores.net-2563eb.svg)](https://nexcores.net)
 [![Docs](https://img.shields.io/badge/docs-online-22c55e.svg)](https://nexcores.net/docs)
 
@@ -21,7 +21,7 @@
 
 **NexCore** 是面向开发者与中小团队的**综合数字基础服务平台**,把"加密支付、跨链兑换、TRON 能量、虚拟卡、云服务、海外通讯、AI 网关"等高频但难自研的能力统一封装为 API,让一个开发者也能跑完跨境业务全链路.
 
-> 自 **2021 年 7 月** 启动以来,服务范围已经从最初的多链收款扩展到 **9 大业务模块**,目前是国内少数同时提供加密金融、海外通讯、AI 接入完整工具栈的开发者平台之一.
+> 自 **2021 年 7 月** 启动以来,服务范围已经从最初的多链收款扩展到 **9 大业务模块**,是少数同时提供加密金融、全球通讯、AI 接入完整工具栈的开发者平台之一.
 
 **设计哲学**
 
@@ -33,7 +33,7 @@
 
 ## 平台业务一览
 
-NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖**核心 4 个**(其余 5 个见线上文档说明):
+NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖 **7 个命名空间**(payment / exchange / energy / smtp / withdraw / account / vcard,其余业务见线上文档说明):
 
 <table>
 <tr>
@@ -43,13 +43,13 @@ NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖**核心 4 个**(其
 </tr>
 <tr>
 <td>🪙 <b>多链收款 / Payment</b></td>
-<td>✅ <code>client.payment</code></td>
-<td>USDT/USDC/TRX/BTC/ETH 等 6 主链加密货币收款,秒级确认,商户自托管</td>
+<td>✅ <code>client.payment</code><br>✅ <code>client.withdraw</code><br>✅ <code>client.account</code></td>
+<td>USDT/USDC/TRX/BTC/ETH 等多链加密货币收款,秒级确认,商户自托管;<code>withdraw</code> 是收款业务的提币出库端(RSA 签名),<code>account</code> 是账户余额 / 充值地址</td>
 </tr>
 <tr>
 <td>💱 <b>汇率 / Exchange</b></td>
 <td>✅ <code>client.exchange</code></td>
-<td>实时加密 ↔ 法币 / 法币 ↔ 法币 汇率服务,Payment 配套</td>
+<td>实时加密 ↔ 法币 / 法币 ↔ 法币 汇率服务,Payment 配套(不单计业务数)</td>
 </tr>
 <tr>
 <td>⚡ <b>TRON 能量租赁 / Energy</b></td>
@@ -59,17 +59,12 @@ NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖**核心 4 个**(其
 <tr>
 <td>📧 <b>SMTP 聚合 API / Smtp</b></td>
 <td>✅ <code>client.smtp</code></td>
-<td>模板邮件 + 多账号智能轮发 + 打开/点击全跟踪</td>
+<td>模板邮件 + 多账号智能轮发 + 打开/点击全跟踪 + 退信/投诉上报</td>
 </tr>
 <tr>
-<td>🔄 多链闪兑 / Swap</td>
-<td>—</td>
-<td>任意币 ↔ 任意币,链上充提,30 分钟自动到账</td>
-</tr>
-<tr>
-<td>💳 虚拟信用卡 / Vcard</td>
-<td>—</td>
-<td>USDT 充值开卡,海外广告 / AI 订阅秒结算,Visa / Mastercard 全球</td>
+<td>💳 <b>虚拟信用卡 / Vcard</b></td>
+<td>✅ <code>client.vcard</code></td>
+<td>USDT 充值开卡,广告投流 / AI 订阅秒结算,Visa / Mastercard 全球</td>
 </tr>
 <tr>
 <td>☁️ 云服务 / Cloud</td>
@@ -79,25 +74,36 @@ NexCore 平台共 **9 个业务模块**,本 SDK 当前覆盖**核心 4 个**(其
 <tr>
 <td>📱 SMS 接码 + 专用邮箱 / SMS</td>
 <td>—</td>
-<td>海外平台注册首选,60+ 国家真实运营商号源</td>
+<td>全球平台注册首选,60+ 国家真实运营商号源</td>
+</tr>
+<tr>
+<td>🌐 代理订阅 / Proxy</td>
+<td>—</td>
+<td>全球网络代理套餐订阅,控制台一键购买 / 续费</td>
 </tr>
 <tr>
 <td>🤖 Astrenix AI / AiApi</td>
 <td>—</td>
 <td>Claude / OpenAI / Gemini 全代理,兼容官方 SDK(直接用 <code>openai</code> SDK 改 base_url)</td>
 </tr>
+<tr>
+<td>🛍️ 数字商店 / DStore</td>
+<td>—</td>
+<td>品牌礼品卡 / 数字面值卡,USDT 结算,卡密加密交付</td>
+</tr>
 </table>
 
-> ⚠️ Swap / Vcard / Cloud / SMS / Astrenix AI 当前通过线上文档 + Web 控制台调用.SDK 后续按需求扩展.
+> ⚠️ Cloud / SMS / 代理订阅 / Astrenix AI / 数字商店 当前通过线上文档 + Web 控制台使用.SDK 后续按需求扩展.
 
-## 业务覆盖(25 个 v1 公开 endpoint)
+## 业务覆盖(44 个 v1 公开 endpoint)
 
 | 模块 | 路径前缀 | 鉴权 | endpoints |
 |---|---|---|---|
 | 多链收款 Payment | `/api/v1/pay/*` | HMAC-SHA256 签名(app_id + app_key) | **7** |
 | 汇率 Exchange | `/api/v1/rate` / `/api/v1/rates*` / `/api/v1/convert` | X-App-Key + X-App-Secret | **5** |
 | 能量租赁 Energy | `/api/v1/energy/*` | X-API-Key + X-Secret-Key | **8** |
-| SMTP 聚合 Smtp | `/api/v1/smtp/*` | Authorization: Bearer smk_xxx | **5** |
+| SMTP 聚合 Smtp | `/api/v1/smtp/*` | Authorization: Bearer smk_xxx | **6** |
+| 提币 Withdraw | `/api/v1/withdraw*` / `/api/v1/balance/withdrawable` / `/api/v1/fee/quote` | RSA-PKCS1v15-SHA256 签名(RSA-2048,非对称) | **4** |
 | 账户 Account | `/api/v1/account/*` | X-API-Key + X-Secret-Key | **2** |
 | 虚拟信用卡 VCard | `/api/v1/vcard/*` | 读=X-API-Key+X-Secret-Key;开卡/充值/注销/卡详情/验证码=HMAC 头签名 | **12** |
 
@@ -128,12 +134,22 @@ Client(config)
   │   ├─ getRate / convert
   │   └─ getRates / getFiatRates / getAllRates
   ├─ .energy     TRON 能量租赁
-  │   ├─ getInfo / getPrice / estimateEnergy
+  │   ├─ getInfo / getPrice(energy_amount, period) / estimateEnergy(to_address)
   │   ├─ createOrder / createOnetimeOrder
   │   └─ queryOrder / listOrders / reclaimOrder
-  └─ .smtp       SMTP 聚合
-      ├─ send / sendBatch / sendTemplate
-      └─ getQuota / getStatus
+  ├─ .smtp       SMTP 聚合
+  │   ├─ send / sendBatch / sendTemplate
+  │   └─ getQuota / getStatus / reportInbound
+  ├─ .withdraw   提币(多链收款出库端,RSA 签名)
+  │   ├─ createWithdraw / getWithdraw
+  │   ├─ getWithdrawableBalance / quoteFee
+  │   └─ sign() / verifyCallback()                     (签名工具)
+  ├─ .account    账户
+  │   └─ getBalance / getDepositAddress
+  └─ .vcard      虚拟信用卡
+      ├─ getInfo / listBins / listCards / getCardTransactions
+      ├─ listOrders / getOrder / updateCardRemark
+      └─ getCardDetails / getCardCode / openCard / rechargeCard / cancelCard  (HMAC 头签名)
 ```
 
 ## 文件组织(规范化)
@@ -150,12 +166,14 @@ sdk/
 │       ├── NexCoreError.php
 │       └── Namespaces/
 │           ├── Payment.php  Exchange.php  Energy.php  Smtp.php
+│           └── Withdraw.php  Account.php  VCard.php
 ├── python/
 │   ├── pyproject.toml               (pip 可安装)
 │   └── nexcore/
 │       ├── __init__.py / client.py / http.py / errors.py
 │       └── namespaces/
 │           ├── payment.py  exchange.py  energy.py  smtp.py
+│           └── withdraw.py  account.py  vcard.py
 ├── node/
 │   ├── package.json                 (npm 可发布)
 │   ├── index.js / index.d.ts
@@ -163,10 +181,12 @@ sdk/
 │       ├── client.js / http.js / errors.js
 │       └── namespaces/
 │           ├── payment.js  exchange.js  energy.js  smtp.js
+│           └── withdraw.js  account.js  vcard.js
 └── go/
     ├── go.mod                       (module: github.com/DoBestone/nexcore-sdk/go)
     ├── doc.go / client.go / http.go / errors.go
-    └── payment.go  exchange.go  energy.go  smtp.go
+    ├── payment.go  exchange.go  energy.go  smtp.go
+    └── withdraw.go  account.go  vcard.go   (+ payment_test.go 签名语义测试)
 ```
 
 ## 鉴权配置
@@ -301,7 +321,7 @@ raw, err := c.Payment.CreateOrder(map[string]any{
 
 ## 版本
 
-当前 SDK 版本:**v3.2.0**(跟主仓库 v3.x 主线一致)
+当前 SDK 版本:**v3.3.0**(跟主仓库 v3.x 主线一致)
 
 ## 反馈
 

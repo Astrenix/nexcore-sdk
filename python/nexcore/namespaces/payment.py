@@ -83,22 +83,40 @@ class Payment:
 
         ``POST /api/v1/pay/create``
 
+        签名注意(SDK 已自动处理):后端把 amount 归一化为两位小数(如 ``"100.50"``)
+        参与签名,且 timeout 恒参与签名(未传按 ``"0"`` 计).
+
         Args:
             out_order_id (str): 商户侧订单号(必须唯一).
             amount (str|float): 法币金额,推荐两位小数 string 避免浮点误差.
             currency (str): 法币代码 CNY/USD/EUR/JPY/KRW/HKD.
             trade_type (str): 加密币种.链,如 ``"usdt.trc20"``.
-            call_type (str, optional): ``"rotation"``(轮播)或 ``"one_to_one"``(一对一),默认 rotation.
-            user_id (str, optional): 一对一模式必填.
-            timeout (int, optional): 订单过期秒数,默认 1800.
+            call_type (str): 调用类型,必填;本接口传 ``"rotation"``
+                (一对一模式走 bind_address/get_user_address,不走本接口).
+            out_user_id (str, optional): 用户标识(一对一模式必填).
+            timeout (int, optional): 订单过期秒数;不传按应用配置.
             subject (str, optional): 订单描述.
             notify_url (str, optional): webhook 回调 URL.
             return_url (str, optional): 支付成功后跳转 URL.
+            order_type (str, optional): normal / recharge.
 
         Returns:
-            dict 含 ``order_id`` / ``pay_address`` / ``crypto_amount`` / ``crypto_currency`` / ``expires_at`` 等字段.
+            dict 含 ``order_id`` / ``out_order_id`` / ``amount`` / ``currency`` /
+            ``crypto_amount`` / ``crypto_currency`` / ``crypto_symbol`` / ``pay_address`` /
+            ``pay_url`` / ``qrcode_url`` / ``payment_page_url`` / ``status`` /
+            ``created_at`` / ``expired_at``.
         """
-        return self._c.http.request("POST", "/api/v1/pay/create", body=self._signed(params))
+        app_id = self._c.get("payment_app_id")
+        if not app_id:
+            raise NexCoreError("payment_app_id not configured")
+        p = dict(params, app_id=app_id)
+        # 后端签名串:amount 两位小数归一 + timeout 恒入签("0" 兜底)
+        sign_params = dict(p)
+        if p.get("amount") not in (None, ""):
+            sign_params["amount"] = f"{float(p['amount']):.2f}"
+        sign_params["timeout"] = str(p.get("timeout") or 0)
+        p["sign"] = self.sign(sign_params)
+        return self._c.http.request("POST", "/api/v1/pay/create", body=p)
 
     def query_order(self, out_order_id: str) -> Dict[str, Any]:
         """查询订单当前状态.
@@ -131,14 +149,16 @@ class Payment:
             body=self._signed({"user_id": user_id, "trade_type": trade_type}),
         )
 
-    def get_user_address(self, user_id: str, trade_type: str) -> Dict[str, Any]:
+    def get_user_address(self, user_id: str) -> Dict[str, Any]:
         """一对一模式 — 查询用户已绑定的地址.
 
         ``POST /api/v1/pay/get-address``(注意:后端是 POST,不是 GET)
+
+        签名只含 ``app_id`` + ``user_id``(不含 trade_type,与 bind_address 不同).
         """
         return self._c.http.request(
             "POST", "/api/v1/pay/get-address",
-            body=self._signed({"user_id": user_id, "trade_type": trade_type}),
+            body=self._signed({"user_id": user_id}),
         )
 
     def unbind_address(self, user_id: str) -> Dict[str, Any]:

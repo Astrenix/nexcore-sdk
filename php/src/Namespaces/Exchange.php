@@ -57,7 +57,7 @@ class Exchange
      *
      * @param string $from 来源币种代码(USDT / TRX / ETH / BTC / USD / CNY ...)
      * @param string $to   目标币种代码
-     * @return array<string, mixed> {from, to, rate, updated_at}
+     * @return array<string, mixed> {from, to, rate, inverse, updated_at}
      */
     public function getRate(string $from, string $to): array
     {
@@ -76,7 +76,7 @@ class Exchange
      * @param string       $from   来源币种
      * @param string       $to     目标币种
      * @param string|float $amount 待换算金额
-     * @return array<string, mixed> {from_amount, to_amount, rate}
+     * @return array<string, mixed> {from, to, amount, result, rate, updated_at}
      */
     public function convert(string $from, string $to, $amount): array
     {
@@ -89,17 +89,21 @@ class Exchange
     /**
      * 批量获取多币种到指定基准币的汇率.
      *
-     * GET /api/v1/rates?symbols=USDT,TRX,ETH&base=CNY
+     * GET /api/v1/rates?symbols=USDT,TRX,ETH&base=USDT
      *
      * @param list<string> $symbols 待查询的币种代码列表
-     * @param string       $base    基准币(报价单位),默认 CNY
+     * @param string       $base    基准币(报价单位);留空由后端取默认(USDT)
      * @return array<string, mixed> {base, rates: {USDT: 7.23, TRX: 0.85, ...}, updated_at}
      */
-    public function getRates(array $symbols, string $base = 'CNY'): array
+    public function getRates(array $symbols, string $base = ''): array
     {
+        $query = ['symbols' => implode(',', $symbols)];
+        if ($base !== '') {
+            $query['base'] = $base;
+        }
         return $this->client->http->request('GET', '/api/v1/rates', [
             'headers' => $this->authHeaders(),
-            'query'   => ['symbols' => implode(',', $symbols), 'base' => $base],
+            'query'   => $query,
         ]);
     }
 

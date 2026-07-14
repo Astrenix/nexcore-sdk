@@ -36,7 +36,7 @@ func (n *ExchangeNamespace) authHeaders() (map[string]string, error) {
 //
 // GET /api/v1/rate?from=USDT&to=CNY
 //
-// 返回 {from, to, rate, updated_at}.
+// 返回 {from, to, rate, inverse, updated_at},inverse = 1/rate.
 func (n *ExchangeNamespace) GetRate(from, to string) (json.RawMessage, error) {
 	h, err := n.authHeaders()
 	if err != nil {
@@ -53,7 +53,7 @@ func (n *ExchangeNamespace) GetRate(from, to string) (json.RawMessage, error) {
 // POST /api/v1/convert
 //
 // 参数 amount 可以是 string 或 number,推荐 string 避免浮点误差.
-// 返回 {from_amount, to_amount, rate}.
+// 返回 {from, to, amount, result, rate, updated_at}.
 func (n *ExchangeNamespace) Convert(from, to string, amount any) (json.RawMessage, error) {
 	h, err := n.authHeaders()
 	if err != nil {
@@ -69,11 +69,10 @@ func (n *ExchangeNamespace) Convert(from, to string, amount any) (json.RawMessag
 //
 // GET /api/v1/rates?symbols=USDT,TRX,ETH&base=CNY
 //
+// base 传空字符串时不携带该参数,由后端取默认值 USDT.
+//
 // 返回 {base, rates: {USDT: 7.23, TRX: 0.85, ...}, updated_at}.
 func (n *ExchangeNamespace) GetRates(symbols []string, base string) (json.RawMessage, error) {
-	if base == "" {
-		base = "CNY"
-	}
 	h, err := n.authHeaders()
 	if err != nil {
 		return nil, err

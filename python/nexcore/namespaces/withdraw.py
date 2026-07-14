@@ -186,23 +186,20 @@ class Withdraw:
         """
         return self._do("GET", "/api/v1/balance/withdrawable")
 
-    def quote_fee(self, chain: str, symbol: str, amount: Optional[str] = None) -> Dict[str, Any]:
+    def quote_fee(self, chain: str, symbol: str, amount: str) -> Dict[str, Any]:
         """费用预估 — GET /api/v1/fee/quote.
 
         Args:
             chain: tron / eth / bsc / polygon / arbitrum / btc
             symbol: USDT / TRX / ETH 等
-            amount: 提币金额(字符串,可选)
+            amount: 提币金额(字符串,必填;后端三参数缺一即 400)
 
         Returns:
             dict: ``{chain, symbol, amount, fee_amount, fee_asset}``
         """
-        if not chain or not symbol:
-            raise NexCoreError("chain and symbol are required")
-        q: Dict[str, Any] = {"chain": chain, "symbol": symbol}
-        if amount:
-            q["amount"] = amount
-        return self._do("GET", "/api/v1/fee/quote", query=q)
+        if not chain or not symbol or amount in (None, ""):
+            raise NexCoreError("chain, symbol and amount are required")
+        return self._do("GET", "/api/v1/fee/quote", query={"chain": chain, "symbol": symbol, "amount": amount})
 
     # ---------- 回调验签 ----------
 

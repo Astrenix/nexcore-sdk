@@ -214,8 +214,10 @@ class VCard {
 
   /**
    * 开卡.`POST /api/v1/vcard/cards`
-   * @param {object} params - 开卡参数(bin / amount 等,以后端文档为准)
-   * @returns {Promise<object>}
+   * @param {object} params
+   * @param {number} params.bin_platform_id - 卡段 platform_id(listBins 返回,必填)
+   * @param {number} params.amount - 开卡充值金额(必填,>0)
+   * @returns {Promise<object>} {order_id, status, total_cost}
    */
   openCard(params) {
     return this._signedRequest('POST', '/api/v1/vcard/cards', params || {});

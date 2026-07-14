@@ -67,21 +67,36 @@ class Payment {
    *
    * `POST /api/v1/pay/create`
    *
+   * 签名注意(SDK 已自动处理):后端把 amount 归一化为两位小数(如 "100.50")参与签名,
+   * 且 timeout 恒参与签名(未传按 "0" 计).
+   *
    * @param {object} params
    * @param {string} params.out_order_id - 商户侧订单号(必须唯一)
    * @param {string|number} params.amount - 法币金额,推荐两位小数 string 避免浮点
    * @param {string} params.currency - 法币 CNY/USD/EUR/JPY/KRW/HKD
    * @param {string} params.trade_type - 加密币种.链,如 "usdt.trc20"
-   * @param {string} [params.call_type] - "rotation"(轮播)或 "one_to_one",默认 rotation
-   * @param {string} [params.user_id] - 一对一模式必填
-   * @param {number} [params.timeout] - 过期秒数,默认 1800
+   * @param {string} params.call_type - 调用类型,必填;本接口传 "rotation"(一对一模式走 bindAddress/getUserAddress,不走本接口)
+   * @param {string} [params.out_user_id] - 用户标识(一对一模式必填)
+   * @param {number} [params.timeout] - 过期秒数;不传按应用配置
    * @param {string} [params.subject] - 订单描述
    * @param {string} [params.notify_url] - webhook 回调
    * @param {string} [params.return_url] - 成功跳转
-   * @returns {Promise<object>} {order_id, pay_address, crypto_amount, crypto_currency, expires_at, ...}
+   * @param {string} [params.order_type] - normal / recharge
+   * @returns {Promise<object>} {order_id, out_order_id, amount, currency, crypto_amount, crypto_currency,
+   *   crypto_symbol, pay_address, pay_url, qrcode_url, payment_page_url, status, created_at, expired_at}
    */
   createOrder(params) {
-    return this._c.http.request('POST', '/api/v1/pay/create', { body: this._signed(params) });
+    const appId = this._c.get('paymentAppId');
+    if (!appId) throw new NexCoreError('paymentAppId not configured');
+    const p = { ...params, app_id: appId };
+    // 后端签名串:amount 两位小数归一 + timeout 恒入签("0" 兜底)
+    const signParams = {
+      ...p,
+      amount: p.amount === '' || p.amount == null ? p.amount : Number(p.amount).toFixed(2),
+      timeout: String(p.timeout == null ? 0 : p.timeout),
+    };
+    p.sign = this.sign(signParams);
+    return this._c.http.request('POST', '/api/v1/pay/create', { body: p });
   }
 
   /**
@@ -139,13 +154,14 @@ class Payment {
    *
    * `POST /api/v1/pay/get-address`(注意:后端是 POST,不是 GET)
    *
+   * 签名只含 app_id + user_id(不含 trade_type,与 bindAddress 不同).
+   *
    * @param {string} userId
-   * @param {string} tradeType
    * @returns {Promise<object>}
    */
-  getUserAddress(userId, tradeType) {
+  getUserAddress(userId) {
     return this._c.http.request('POST', '/api/v1/pay/get-address', {
-      body: this._signed({ user_id: userId, trade_type: tradeType }),
+      body: this._signed({ user_id: userId }),
     });
   }
 

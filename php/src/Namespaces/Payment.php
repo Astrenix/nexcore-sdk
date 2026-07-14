@@ -84,25 +84,46 @@ class Payment
      *
      * POST /api/v1/pay/create
      *
+     * 签名注意(对齐后端 internal/service/order.go 验签逻辑):
+     *   - amount 入签时按两位小数归一(如 "100.5" → 签 "100.50"),发送 body 保持原值
+     *   - timeout 恒入签:未传时按 "0" 参与签名(body 不发该字段)
+     *
      * @param array{
      *     out_order_id: string,       商户侧订单号(必须唯一)
      *     amount: string|float,       法币金额,两位小数 string 避免浮点误差
      *     currency: string,           法币:CNY/USD/EUR/JPY/KRW/HKD
      *     trade_type: string,         加密币种.链,如 usdt.trc20 / trx / eth
-     *     call_type?: string,         rotation(轮播) / one_to_one(一对一),默认 rotation
-     *     user_id?: string,           一对一模式必填
+     *     call_type: string,          必填.本接口只支持 rotation(轮播);一对一模式请走 bindAddress
+     *     out_user_id?: string,       商户侧用户 ID(一对一模式)
      *     timeout?: int,              订单过期秒数,默认 1800
      *     subject?: string,           订单描述
      *     notify_url?: string,        webhook 回调 URL
      *     return_url?: string,        支付成功后跳转 URL
      * } $params
-     * @return array<string, mixed> 返回 {order_id, pay_address, crypto_amount, crypto_currency, expires_at, ...}
+     * @return array<string, mixed> 返回 {order_id, out_order_id, amount, currency, crypto_amount,
+     *                              crypto_currency, crypto_symbol, pay_address, pay_url, qrcode_url,
+     *                              payment_page_url, status, created_at, expired_at}
      * @throws NexCoreError
      */
     public function createOrder(array $params): array
     {
+        // 签名参数与发送 body 分离:后端验签时 amount 用两位小数归一、timeout 恒入签(未传按 "0")
+        $signParams = $params;
+        if (isset($signParams['amount'])) {
+            $signParams['amount'] = number_format((float) $signParams['amount'], 2, '.', '');
+        }
+        if (!isset($signParams['timeout']) || $signParams['timeout'] === '' || $signParams['timeout'] === null) {
+            $signParams['timeout'] = '0';
+        }
+        $signed = $this->signed($signParams);
+
+        // 发送 body 保持用户原值(timeout 不传就不发),只附加签好的 app_id + sign
+        $body            = $params;
+        $body['app_id']  = $signed['app_id'];
+        $body['sign']    = $signed['sign'];
+
         return $this->client->http->request('POST', '/api/v1/pay/create', [
-            'body' => $this->signed($params),
+            'body' => $body,
         ]);
     }
 
@@ -176,15 +197,16 @@ class Payment
      * POST /api/v1/pay/get-address
      * (注意:后端是 POST,不是 GET)
      *
-     * @param string $userId    用户 ID
-     * @param string $tradeType 加密币种.链
-     * @return array<string, mixed>
+     * 签名注意:本接口签名只含 app_id + user_id(**没有 trade_type**),与 bindAddress 不同.
+     *
+     * @param string $userId 用户 ID
+     * @return array<string, mixed> {user_id, address, chain, status, bind_at}
      * @throws NexCoreError
      */
-    public function getUserAddress(string $userId, string $tradeType): array
+    public function getUserAddress(string $userId): array
     {
         return $this->client->http->request('POST', '/api/v1/pay/get-address', [
-            'body' => $this->signed(['user_id' => $userId, 'trade_type' => $tradeType]),
+            'body' => $this->signed(['user_id' => $userId]),
         ]);
     }
 

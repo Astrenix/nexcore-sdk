@@ -50,9 +50,11 @@ func (n *EnergyNamespace) GetInfo() (json.RawMessage, error) {
 
 // GetPrice quotes the price for a given energy amount and period.
 //
-// GET /api/v1/energy/price?energy=65000&period=1D
+// GET /api/v1/energy/price?energy_amount=65000&period=1D
 //
-// period: "1H" / "6H" / "1D" / "3D" / "1W",空字符串视为 "1D".
+// period: "1H" / "1D" / "3D" / "7D" / "30D",空字符串视为 "1D".
+//
+// 返回 {period, energy_amount, price_trx}.
 func (n *EnergyNamespace) GetPrice(energy int, period string) (json.RawMessage, error) {
 	if period == "" {
 		period = "1D"
@@ -62,23 +64,26 @@ func (n *EnergyNamespace) GetPrice(energy int, period string) (json.RawMessage, 
 		return nil, err
 	}
 	return n.c.transport.do("GET", "/api/v1/energy/price", &requestOpts{
-		Query:   map[string]any{"energy": energy, "period": period},
+		Query:   map[string]any{"energy_amount": energy, "period": period},
 		Headers: h,
 	})
 }
 
 // EstimateEnergy estimates the energy needed for a TRC20 transfer to the given address.
 //
-// GET /api/v1/energy/estimate-energy?receive_addr=TXxxxxxxxx
+// GET /api/v1/energy/estimate-energy?to_address=TXxxxxxxxx
 //
-// 返回 {estimated_energy, has_usdt_balance, ...}.
-func (n *EnergyNamespace) EstimateEnergy(receiveAddr string) (json.RawMessage, error) {
+// to_address 必须是合法 TRON 主网地址(T 开头 34 字符).
+//
+// 返回 {to_address, initialized, suggested_energy}.
+// initialized=false 表示目标地址无 USDT 余额(首笔转账需更多能量).
+func (n *EnergyNamespace) EstimateEnergy(toAddress string) (json.RawMessage, error) {
 	h, err := n.headers()
 	if err != nil {
 		return nil, err
 	}
 	return n.c.transport.do("GET", "/api/v1/energy/estimate-energy", &requestOpts{
-		Query:   map[string]any{"receive_addr": receiveAddr},
+		Query:   map[string]any{"to_address": toAddress},
 		Headers: h,
 	})
 }
@@ -88,14 +93,15 @@ func (n *EnergyNamespace) EstimateEnergy(receiveAddr string) (json.RawMessage, e
 // POST /api/v1/energy/order
 //
 // 必填:
-//   receive_addr (string) — 收能量的目标 TRON 地址
-//   energy       (int)    — 能量数(>= minimum_order_energy)
-//   period       (string) — 1H / 6H / 1D / 3D / 1W
+//   receive_address (string) — 收能量的目标 TRON 地址
+//   energy_amount   (int)    — 能量数(>= minimum_order_energy)
+//   period          (string) — 1H / 1D / 3D / 7D / 30D
 //
 // 可选:
-//   out_serial   (string) — 商户侧订单号(幂等用)
+//   out_trade_no    (string) — 商户侧订单号(幂等/对账用)
+//   remark          (string) — 备注
 //
-// 返回 {serial, status, delegated_at, ...}.
+// 返回 {serial, price_trx, deducted_usd}.
 func (n *EnergyNamespace) CreateOrder(params map[string]any) (json.RawMessage, error) {
 	h, err := n.headers()
 	if err != nil {
@@ -109,6 +115,19 @@ func (n *EnergyNamespace) CreateOrder(params map[string]any) (json.RawMessage, e
 // POST /api/v1/energy/order/onetime
 //
 // 适用场景:用户只做一笔 TRC20 转账,转完即丢能量.
+//
+// 必填:
+//   receive_address (string) — 收能量的目标 TRON 地址
+//   period          (string) — 1H / 1D / 3D / 7D / 30D
+//
+// 可选:
+//   out_trade_no    (string) — 商户侧订单号(幂等/对账用)
+//   remark          (string) — 备注
+//
+// 注意:本接口没有 energy_amount 参数,能量数由平台按目标地址估算.
+//
+// 返回 {serial, price_trx, deducted_usd}.
+// 计费按预估上界先扣款,再按上游实际金额结算 —— 多退少不补.
 func (n *EnergyNamespace) CreateOnetimeOrder(params map[string]any) (json.RawMessage, error) {
 	h, err := n.headers()
 	if err != nil {
@@ -122,6 +141,9 @@ func (n *EnergyNamespace) CreateOnetimeOrder(params map[string]any) (json.RawMes
 // GET /api/v1/energy/order/:serial
 //
 // 注意:serial 是字符串序列号,**不是**数字 id.
+//
+// 返回订单视图 {serial, receive_address, energy_amount, period, price_trx,
+// status, status_msg, out_trade_no, order_type, created_at}.
 func (n *EnergyNamespace) QueryOrder(serial string) (json.RawMessage, error) {
 	h, err := n.headers()
 	if err != nil {
@@ -134,7 +156,12 @@ func (n *EnergyNamespace) QueryOrder(serial string) (json.RawMessage, error) {
 //
 // GET /api/v1/energy/orders
 //
-// filter 可包含 status / page / page_size 等.
+// filter 可包含:
+//   status    (int) — -1 全部(默认) / 0 待处理 / 40 成功 / 41 失败
+//   page      (int) — 页码,默认 1
+//   page_size (int) — 每页条数,默认 20,最大 100
+//
+// 返回 {list, total, page, page_size},list 元素字段同 QueryOrder.
 func (n *EnergyNamespace) ListOrders(filter map[string]any) (json.RawMessage, error) {
 	h, err := n.headers()
 	if err != nil {
@@ -146,6 +173,8 @@ func (n *EnergyNamespace) ListOrders(filter map[string]any) (json.RawMessage, er
 // ReclaimOrder actively reclaims an order (returns energy to the platform).
 //
 // POST /api/v1/energy/order/reclaim
+//
+// 返回 {errno, message},errno=0 表示回收成功.
 func (n *EnergyNamespace) ReclaimOrder(serial string) (json.RawMessage, error) {
 	h, err := n.headers()
 	if err != nil {

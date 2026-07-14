@@ -48,7 +48,7 @@ class Exchange:
             to: 目标币种代码.
 
         Returns:
-            dict 含 ``from`` / ``to`` / ``rate`` / ``updated_at``.
+            dict 含 ``from`` / ``to`` / ``rate`` / ``inverse`` / ``updated_at``.
         """
         return self._c.http.request(
             "GET", "/api/v1/rate",
@@ -67,7 +67,8 @@ class Exchange:
             amount: 待换算金额(string / float / int).
 
         Returns:
-            dict 含 ``from_amount`` / ``to_amount`` / ``rate``.
+            dict 含 ``from`` / ``to`` / ``amount`` / ``result`` / ``rate`` /
+            ``updated_at``(``result`` 为换算结果).
         """
         return self._c.http.request(
             "POST", "/api/v1/convert",
@@ -75,14 +76,21 @@ class Exchange:
             headers=self._headers(),
         )
 
-    def get_rates(self, symbols: List[str], base: str = "CNY") -> Dict[str, Any]:
+    def get_rates(self, symbols: List[str], base: str = None) -> Dict[str, Any]:
         """批量获取多币种到指定基准币的汇率.
 
-        ``GET /api/v1/rates?symbols=USDT,TRX,ETH&base=CNY``
+        ``GET /api/v1/rates?symbols=USDT,TRX,ETH&base=USDT``
+
+        Args:
+            symbols: 待查询的币种代码列表.
+            base: 基准币;不传由后端取默认(USDT).
         """
+        query: Dict[str, Any] = {"symbols": ",".join(symbols)}
+        if base:
+            query["base"] = base
         return self._c.http.request(
             "GET", "/api/v1/rates",
-            query={"symbols": ",".join(symbols), "base": base},
+            query=query,
             headers=self._headers(),
         )
 

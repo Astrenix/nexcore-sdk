@@ -45,7 +45,8 @@ class Account:
         ``GET /api/v1/account/balance``
 
         Returns:
-            dict 含各资产可用 / 冻结余额等字段.
+            dict 含 ``balance``(USD 余额)/ ``currency``(恒 USD)/
+            ``deposit_address``(TRON 固定充值地址对象,未绑定时为 None).
         """
         return self._c.http.request("GET", "/api/v1/account/balance", headers=self._headers())
 
