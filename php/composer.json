@@ -3,7 +3,7 @@
   "description": "Official Tovanix (formerly NexCore) PHP SDK — Payment / Withdraw / Exchange / Energy / SMTP / Account / VCard. Covers all v1 public API endpoints.",
   "type": "library",
   "license": "MIT",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "keywords": ["nexcore", "tovanix", "payment", "crypto", "tron", "usdt", "smtp", "sdk", "trc20", "withdraw", "vcard", "account"],
   "require": {
     "php": ">=7.4",

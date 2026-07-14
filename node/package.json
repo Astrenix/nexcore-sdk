@@ -1,6 +1,6 @@
 {
   "name": "@nexcore/sdk",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Official Tovanix (formerly NexCore) Node.js SDK — Payment / Withdraw / Exchange / Energy / SMTP / Account / VCard. Covers all v1 public API endpoints.",
   "main": "index.js",
   "types": "index.d.ts",

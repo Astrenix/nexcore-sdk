@@ -41,4 +41,4 @@
 package nexcore
 
 // Version is the SDK version, kept in sync with the public repository tags.
-const Version = "3.2.0"
+const Version = "3.3.0"

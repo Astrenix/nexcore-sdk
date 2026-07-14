@@ -52,7 +52,7 @@ use NexCore\Namespaces\VCard;
 class Client
 {
     /** SDK 版本号(跟主仓库 v3.x.x 同步) */
-    public const VERSION = '3.2.0';
+    public const VERSION = '3.3.0';
 
     /** @var array<string, mixed> 完整配置 */
     private array $config;

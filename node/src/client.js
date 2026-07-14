@@ -123,6 +123,6 @@ class Client {
   }
 }
 
-Client.VERSION = '3.2.0';
+Client.VERSION = '3.3.0';
 
 module.exports = { Client };

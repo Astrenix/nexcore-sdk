@@ -50,7 +50,7 @@ class Client:
     所有错误统一抛 :class:`NexCoreError`(含 ``code`` / ``request_id`` / ``http_status``).
     """
 
-    VERSION = "3.2.0"
+    VERSION = "3.3.0"
 
     def __init__(
         self,

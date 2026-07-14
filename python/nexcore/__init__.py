@@ -24,5 +24,5 @@ from .client import Client
 from .errors import NexCoreError
 from .namespaces.vcard import verify_webhook as verify_vcard_webhook
 
-__version__ = "3.2.0"
+__version__ = "3.3.0"
 __all__ = ["Client", "NexCoreError", "verify_vcard_webhook", "__version__"]
